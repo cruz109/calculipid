@@ -1,0 +1,3065 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Calculipid">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1a6f8e">
+<meta name="description" content="Calculadora de riesgo cardiovascular ESC/EAS 2025 para Atención Primaria. SCORE2, SCORE2-OP, SCORE2-Diabetes.">
+<!-- ═══ APPLE PWA META TAGS (iOS Safari — Requisito C) ═══════════════
+     apple-mobile-web-app-capable  → elimina la barra del navegador Safari
+     apple-mobile-web-app-status-bar-style → "black" = barra de estado oscura
+     apple-touch-icon 57px → icono en pantalla de inicio iPhone (legacy)
+     apple-touch-icon 180px → iPhone 6+ / iPad Retina
+     apple-touch-startup-image → splash 320×460 para iPhone ≤ 4"
+     Fuente: Apple Human Interface Guidelines / WebKit docs
+-->
+<!-- Apple Touch Icons — 57px (legacy) y 180px (Retina) -->
+<link rel="apple-touch-icon" sizes="57x57" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 57 57'%3E%3Crect width='57' height='57' rx='10' fill='%231a6f8e'/%3E%3Ctext x='50%25' y='55%25' font-size='32' text-anchor='middle' dominant-baseline='middle' fill='white'%3E%E2%9D%A4%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='30' fill='%231a6f8e'/%3E%3Ctext x='50%25' y='55%25' font-size='100' text-anchor='middle' dominant-baseline='middle' fill='white'%3E%E2%9D%A4%3C/text%3E%3C/svg%3E">
+<!-- Startup image 320×460 para iPhone 3GS/4 — se inyecta también por JS -->
+<link rel="apple-touch-startup-image" media="(device-width:320px)" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='460'%3E%3Crect width='320' height='460' fill='%23f4f7f9'/%3E%3Crect x='120' y='140' width='80' height='80' rx='14' fill='%231a6f8e'/%3E%3Ctext x='160' y='192' font-size='44' text-anchor='middle' dominant-baseline='middle' fill='white'%3E%E2%9D%A4%3C/text%3E%3Ctext x='160' y='270' font-size='18' font-weight='700' text-anchor='middle' fill='%231a6f8e' font-family='system-ui'%3ECalculipid%3C/text%3E%3Ctext x='160' y='296' font-size='11' text-anchor='middle' fill='%238aa0b2' font-family='system-ui'%3EESC%2FEAS%202025%3C/text%3E%3C/svg%3E">
+<!-- Manifest inline (evita archivo externo) -->
+<title>Calculipid Trevias — ESC/EAS 2025</title>
+<style>
+:root {
+  /* === PALETA CIENTÍFICA: FONDO CLARO, ACENTOS TEAL/SLATE === */
+  --bg:    #f4f7f9;
+  --bg2:   #edf1f5;
+  --sur:   #ffffff;
+  --sur2:  #f0f4f7;
+  --sur3:  #e4eaf0;
+  --bor:   #d0d9e3;
+  --bor2:  #b8c6d4;
+
+  /* Acento principal: teal médico */
+  --a:     #1a6f8e;
+  --a2:    #2a9dbf;
+  --a3:    #e8f5f9;
+
+  /* Textos */
+  --t:     #1a2535;
+  --t2:    #4a6072;
+  --t3:    #8aa0b2;
+
+  /* Riesgo — solo 4 colores, claros sobre fondo blanco */
+  --vh:    #c0392b;   /* Muy alto — rojo sobrio */
+  --hi:    #d4660a;   /* Alto — naranja sobrio */
+  --mo:    #b5860d;   /* Moderado — ámbar sobrio */
+  --lo:    #207a4e;   /* Bajo — verde sobrio */
+  --ext:   #6b3fa0;   /* Extremo — violeta sobrio */
+
+  /* Semánticos */
+  --ok:    #207a4e;
+  --er:    #c0392b;
+  --warn:  #d4660a;
+
+  --shadow:  0 1px 4px rgba(26,47,70,.08), 0 4px 12px rgba(26,47,70,.06);
+  --shadow2: 0 2px 8px rgba(26,47,70,.10), 0 8px 24px rgba(26,47,70,.08);
+  --radius: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--t);
+  min-height: 100vh;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* ─── HEADER ─────────────────────────────────────────── */
+header {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--bor);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 24px;
+  background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(26,47,70,.08);
+  flex-wrap: wrap;
+}
+.header-left { display: flex; align-items: center; gap: 10px; }
+.logo {
+  width: 34px; height: 34px;
+  background: linear-gradient(135deg, var(--a), var(--a2));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; color: #fff;
+  flex-shrink: 0;
+}
+.brand { display: flex; flex-direction: column; gap: 1px; }
+.brand-main {
+  font-size: 16px; font-weight: 800; letter-spacing: -.2px; color: var(--a);
+}
+.brand-main span { color: var(--a2); }
+.brand-sub { font-size: 10px; color: var(--t3); letter-spacing: .3px; }
+.hbadge {
+  font-size: 9px; font-family: 'Courier New', monospace;
+  background: var(--a3); color: var(--a);
+  border: 1px solid rgba(26,111,142,.25);
+  padding: 3px 8px; border-radius: 20px; margin-left: 2px;
+}
+.header-disc {
+  font-size: 10.5px; color: var(--t2); max-width: 620px;
+  line-height: 1.5;
+  background: #fffbeb;
+  padding: 8px 12px; border-radius: 8px;
+  border: 1px solid #f0d060;
+  transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease, margin 0.3s ease;
+  overflow: hidden;
+  max-height: 500px;
+}
+
+/* Aviso colapsado en móvil cuando el usuario empieza a introducir datos */
+.header-disc.disc-collapsed {
+  max-height: 0 !important;
+  opacity: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin: 0 !important;
+  border-width: 0 !important;
+  pointer-events: none;
+}
+
+/* Botón para restaurar el aviso en móvil */
+#disc-toggle-btn {
+  display: none;
+  font-size: 10px;
+  color: var(--a);
+  background: var(--a3);
+  border: 1px solid rgba(26,111,142,.25);
+  border-radius: 20px;
+  padding: 3px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+@media (max-width: 900px) {
+  /* En móvil el header NO es sticky para evitar problemas con teclado en iOS */
+  header {
+    position: static !important;
+    -webkit-position: static !important;
+  }
+  #disc-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+}
+
+/* ─── ERROR INLINE ────────────────────────────────────── */
+#error-msg {
+  display: none;
+  background: #fef2f2; border: 1px solid #fca5a5;
+  border-radius: 8px; padding: 10px 14px;
+  font-size: 12px; font-weight: 600; color: var(--er);
+  margin-bottom: 12px;
+}
+#error-msg.visible { display: block; }
+
+/* ─── LAYOUT ─────────────────────────────────────────── */
+.main {
+  max-width: 1160px; margin: 0 auto;
+  padding: 20px 16px 60px;
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .main { grid-template-columns: 1fr; }
+}
+
+/* ─── CARDS ──────────────────────────────────────────── */
+.card {
+  background: var(--sur);
+  border: 1px solid var(--bor);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+}
+.card:last-child { margin-bottom: 0; }
+
+/* ─── TÍTULOS DE SECCIÓN ─────────────────────────────── */
+.ctit {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--a); margin-bottom: 14px;
+  display: flex; align-items: center; gap: 6px;
+}
+.ctit::before {
+  content: ''; width: 3px; height: 12px;
+  background: linear-gradient(to bottom, var(--a), var(--a2));
+  border-radius: 2px; flex-shrink: 0;
+}
+
+/* ─── FORMULARIO ─────────────────────────────────────── */
+.f { margin-bottom: 10px; }
+.fr { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+label {
+  display: block; font-size: 11px; font-weight: 600;
+  color: var(--t2); margin-bottom: 3px; letter-spacing: .1px;
+}
+input, select {
+  width: 100%;
+  background: var(--sur2);
+  border: 1px solid var(--bor);
+  border-radius: 7px;
+  padding: 9px 10px;
+  color: var(--t);
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  transition: all .15s;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+input:focus, select:focus {
+  border-color: var(--a);
+  box-shadow: 0 0 0 3px rgba(26,111,142,.12);
+  background: #fff;
+}
+input::placeholder { color: var(--t3); }
+select option { background: #fff; color: var(--t); }
+.fh { font-size: 9.5px; color: var(--t3); margin-top: 2px; line-height: 1.4; }
+.req { color: var(--er); }
+
+/* ─── POTENCIAS DE REFERENCIA (desplegable) ──────────── */
+.potref {
+  background: var(--sur2); border: 1px solid var(--bor);
+  border-radius: 8px; padding: 8px 12px; margin-top: 5px;
+}
+.potref summary {
+  font-size: 10px; font-weight: 700; color: var(--a);
+  cursor: pointer; letter-spacing: .3px;
+  list-style: none; display: flex; align-items: center; gap: 5px;
+  user-select: none; -webkit-user-select: none;
+}
+.potref summary::-webkit-details-marker { display: none; }
+
+/* ─── TABLAS DE POTENCIA ─────────────────────────────── */
+.ptbl { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 10px; }
+.ptbl th {
+  background: var(--sur3); color: var(--t2);
+  padding: 5px 7px; text-align: left; font-weight: 600;
+  letter-spacing: .3px; border-bottom: 1px solid var(--bor);
+}
+.ptbl td {
+  padding: 4px 7px; color: var(--t2);
+  border-bottom: 1px solid var(--bor); vertical-align: top;
+}
+.ptbl tr:last-child td { border-bottom: none; }
+.ptbl .drg { color: var(--t); font-weight: 600; }
+.pA { color: var(--er); font-weight: 700; }
+.pM { color: var(--warn); font-weight: 700; }
+.pB { color: var(--ok); font-weight: 700; }
+
+/* ─── BOTÓN ──────────────────────────────────────────── */
+.btn {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, var(--a), var(--a2));
+  border: none; border-radius: 10px;
+  color: #fff; font-size: 14px; font-weight: 700;
+  cursor: pointer; letter-spacing: .3px;
+  transition: all .18s; margin-top: 6px;
+  box-shadow: 0 3px 10px rgba(26,111,142,.3);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(26,111,142,.4); }
+.btn:active { transform: translateY(0); }
+
+/* ─── PLACEHOLDER ────────────────────────────────────── */
+.ph {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; min-height: 320px;
+  color: var(--t3); font-size: 13px; text-align: center; gap: 10px;
+}
+.ph-icon { font-size: 44px; opacity: .2; }
+
+/* ─── RESULTADOS ─────────────────────────────────────── */
+.res { animation: fu .35s ease; }
+@keyframes fu {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── CARD DE RIESGO ─────────────────────────────────── */
+.rcvc {
+  background: var(--sur); border: 1px solid var(--bor);
+  border-radius: var(--radius); padding: 18px; margin-bottom: 12px;
+  position: relative; overflow: hidden; box-shadow: var(--shadow2);
+}
+.rcvc::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: var(--rc, var(--a));
+}
+.rcvtop {
+  display: flex; justify-content: space-between;
+  align-items: flex-start; gap: 12px; flex-wrap: wrap;
+}
+.snum {
+  font-size: 52px; font-weight: 800; line-height: 1;
+  color: var(--rc, var(--a)); letter-spacing: -2px;
+}
+.snum sup { font-size: 18px; font-weight: 400; letter-spacing: 0; }
+.rnam { font-size: 15px; font-weight: 700; color: var(--rc, var(--a)); margin-top: 3px; }
+.rdesc { font-size: 11px; color: var(--t2); line-height: 1.5; margin-top: 5px; max-width: 320px; }
+.rpill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 13px; border-radius: 24px; font-size: 11px; font-weight: 700;
+  font-family: 'Courier New', monospace; border: 2px solid currentColor; white-space: nowrap;
+}
+.chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--sur2); border: 1px solid var(--bor);
+  border-radius: 12px; padding: 3px 8px;
+  font-family: 'Courier New', monospace; font-size: 10px; color: var(--t2);
+}
+.dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; }
+
+/* ─── GRID DE VALORES ────────────────────────────────── */
+.tgrid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 8px; margin: 10px 0;
+}
+.tv {
+  background: var(--sur2); border: 1px solid var(--bor);
+  border-radius: 9px; padding: 10px 12px;
+}
+.tvl { font-size: 9px; color: var(--t3); font-family: 'Courier New', monospace; margin-bottom: 3px; letter-spacing: .3px; }
+.tvn { font-size: 19px; font-weight: 800; color: var(--a); }
+.tvs { font-size: 9px; color: var(--t3); margin-top: 1px; }
+
+/* ─── BARRA LDL ──────────────────────────────────────── */
+.thr {
+  background: var(--a3); border: 1px solid rgba(26,111,142,.2);
+  border-radius: 9px; padding: 10px 13px; font-size: 11px;
+  color: var(--t2); line-height: 1.6; margin-top: 9px;
+}
+.thr b { color: var(--t); }
+.lbar {
+  background: var(--sur); border: 1px solid var(--bor);
+  border-radius: 11px; padding: 14px 16px; margin-bottom: 12px;
+  box-shadow: var(--shadow);
+}
+.lhdr { display: flex; justify-content: space-between; font-size: 11px; color: var(--t2); margin-bottom: 8px; flex-wrap: wrap; gap: 4px; }
+.ltrack {
+  position: relative; height: 10px; background: var(--sur3);
+  border-radius: 5px; margin-bottom: 5px; overflow: visible;
+  border: 1px solid var(--bor);
+}
+.lfill { height: 100%; border-radius: 5px; background: linear-gradient(to right, var(--er), var(--warn)); transition: width .6s ease; }
+.ltl { position: absolute; top: -6px; bottom: -6px; width: 2.5px; border-radius: 2px; }
+.lscale { display: flex; justify-content: space-between; font-size: 9px; color: var(--t3); font-family: 'Courier New', monospace; }
+.lsum { margin-top: 9px; font-size: 11px; color: var(--t2); display: flex; flex-wrap: wrap; gap: 10px; }
+.lsum b { color: var(--t); }
+
+/* ─── ALERTAS ────────────────────────────────────────── */
+.alert-p2 {
+  background: #fffbeb; border: 1px solid #f0d060;
+  border-radius: 8px; padding: 8px 12px; margin-bottom: 10px;
+  font-size: 11px; color: var(--t2); line-height: 1.55;
+}
+.alert-p2 .ap2-tit {
+  font-size: 11px; font-weight: 800; color: var(--warn);
+  margin-bottom: 4px; display: flex; align-items: center; gap: 6px;
+}
+.alert-p2.ext { background: #f9f5ff; border-color: rgba(107,63,160,.3); }
+.alert-p2.ext .ap2-tit { color: var(--ext); }
+
+/* ─── SECCIONES DE TRATAMIENTO ───────────────────────── */
+.dsec {
+  background: var(--sur); border: 1px solid var(--bor);
+  border-radius: var(--radius); padding: 16px; margin-bottom: 12px;
+  box-shadow: var(--shadow);
+}
+.stit {
+  font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
+  text-transform: uppercase; color: var(--a);
+  margin-bottom: 10px; margin-top: 14px;
+  border-left: 3px solid var(--a); padding-left: 8px;
+}
+.stit:first-child { margin-top: 0; }
+.paso-badge {
+  display: inline-block; background: var(--a); color: #fff;
+  font-family: 'Courier New', monospace; font-size: 10px; font-weight: 800;
+  padding: 3px 10px; border-radius: 12px; margin-bottom: 8px; letter-spacing: .4px;
+}
+.paso-badge.p2 { background: var(--a2); }
+.paso-badge.p3 { background: var(--ext); }
+
+/* ─── GRID DE FÁRMACOS ───────────────────────────────── */
+.dg { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 9px; margin-bottom: 6px; }
+.dc {
+  background: var(--sur2); border: 1.5px solid var(--bor);
+  border-radius: 10px; padding: 12px;
+}
+/* Paso 1: borde teal */
+.dc.p1 { border-color: rgba(26,111,142,.4); background: rgba(26,111,142,.04); }
+/* Paso 2: borde teal-cyan */
+.dc.p2 { border-color: rgba(42,157,191,.4); background: rgba(42,157,191,.04); }
+/* Paso 3: borde violeta suave */
+.dc.p3 { border-color: rgba(107,63,160,.35); background: rgba(107,63,160,.04); }
+.dc.alt { border-color: rgba(32,122,78,.35); background: rgba(32,122,78,.04); }
+
+/* Badges de eficacia */
+.dbg {
+  display: inline-block; font-size: 9px; font-family: 'Courier New', monospace;
+  padding: 2px 7px; border-radius: 8px; margin-bottom: 5px;
+  font-weight: 700; letter-spacing: .3px;
+}
+.ba { background: #fde8e8; color: var(--er); }
+.bm { background: #fef3cd; color: var(--warn); }
+.bl { background: #d4edda; color: var(--ok); }
+.bp2 { background: var(--a3); color: var(--a); }
+.bext { background: #f0ebff; color: var(--ext); }
+.balt { background: #d4edda; color: var(--ok); }
+
+.dn { font-size: 13px; font-weight: 700; margin-bottom: 2px; color: var(--t); }
+.dd { font-family: 'Courier New', monospace; font-size: 11px; color: var(--a); margin-bottom: 4px; }
+.dt { font-size: 10px; color: var(--t2); line-height: 1.5; }
+.dbar { background: var(--sur3); border-radius: 4px; height: 5px; margin-top: 7px; overflow: hidden; border: 1px solid var(--bor); }
+.dbarf { height: 100%; border-radius: 4px; background: linear-gradient(to right, var(--a), var(--a2)); }
+.dpct { font-size: 9px; color: var(--t3); font-family: 'Courier New', monospace; margin-top: 2px; }
+
+/* ─── CUADROS INFORMATIVOS ───────────────────────────── */
+/* Solo 3 estilos: info-azul, alerta-ámbar, crítico-rojo */
+.ib {
+  border-radius: 9px; padding: 10px 13px;
+  font-size: 11px; line-height: 1.6; color: var(--t2); margin-top: 9px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.ib b { color: var(--t); }
+
+/* ── Tarjetas desplegables en lugar de tabla ── */
+.irow-list { margin-top: 8px; display: flex; flex-direction: column; gap: 5px; }
+.irow {
+  border: 1px solid var(--bor);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg);       /* #f4f7f9 — gris azulado suave, no blanco */
+}
+.irow-head {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px;
+  cursor: pointer;
+  user-select: none; -webkit-user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  background: var(--bg2);      /* #edf1f5 — un tono más oscuro para el header */
+}
+.irow-head:hover { background: var(--sur3); }
+.irow-tag {
+  font-size: 10px; font-weight: 700; color: var(--sur);
+  background: var(--a); border-radius: 4px;
+  padding: 2px 7px; white-space: nowrap; flex-shrink: 0;
+}
+.irow-tag.warn-tag { background: var(--er); }
+.irow-tag.cau-tag  { background: var(--warn); }
+.irow-tag.ok-tag   { background: var(--ok); }
+.irow-label { font-size: 11px; font-weight: 700; color: var(--t); flex: 1; }
+.irow-arrow { font-size: 10px; color: var(--t3); flex-shrink: 0; transition: transform .2s; }
+.irow-body {
+  
+  padding: 9px 12px;
+  font-size: 10px; color: var(--t2); line-height: 1.65;
+  border-top: 1px solid var(--bor);
+  background: var(--bg);       /* mismo fondo suave al abrir */
+}
+.irow-body.open { display: block; }
+.irow-body .col { margin-bottom: 7px; }
+.irow-body .col:last-child { margin-bottom: 0; }
+.irow-body .col-lbl {
+  font-size: 9px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .04em; color: var(--t3); margin-bottom: 3px;
+}
+.irow-body .col-lbl.lbl-int { color: var(--er); }
+.irow-body .col-lbl.lbl-mon { color: var(--a); }
+.irow-body .col-lbl.lbl-lim { color: var(--warn); }
+/* Colores de fila según contexto */
+.irow.row-warn { border-color: rgba(192,57,43,.25); }
+.irow.row-warn .irow-head { background: #f2eaea; }   /* rojo muy apagado */
+.irow.row-ok   { border-color: rgba(32,122,78,.2); }
+
+/* Informativo: azul-teal */
+.ib.bl2, .ib.cy { background: #eaf4f8; border: 1px solid rgba(26,111,142,.18); }
+/* Precaución: ámbar — menos saturado */
+.ib.am { background: #faf6e8; border: 1px solid #dfc96a; }
+/* Positivo/ok: verde suave */
+.ib.gn { background: #eef7f2; border: 1px solid rgba(32,122,78,.18); }
+/* Peligro: rojo muy suave */
+.ib.rd { background: #faf0f0; border: 1px solid rgba(192,57,43,.18); }
+/* Violeta — solo PCSK9/especial */
+.ib.pu { background: #f5f1fc; border: 1px solid rgba(107,63,160,.18); }
+/* Neutro/gris */
+.ib.gr { background: var(--sur2); border: 1px solid var(--bor); }
+
+/* ─── SEPARADOR ──────────────────────────────────────── */
+.sdiv { height: 1px; background: var(--bor); margin: 12px 0; }
+
+/* ─── SEGUIMIENTO ────────────────────────────────────── */
+.fug { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+@media (max-width: 500px) { .fug { grid-template-columns: 1fr; } }
+.fui { background: var(--sur2); border: 1px solid var(--bor); border-radius: 9px; padding: 10px; }
+.fuic { font-size: 15px; margin-bottom: 3px; }
+.fuit { font-size: 11px; font-weight: 700; color: var(--t); margin-bottom: 2px; }
+.fuid { font-size: 10px; color: var(--t2); line-height: 1.5; }
+.warn { color: var(--er); font-weight: 700; }
+
+/* ─── TABLAS OBJETIVOS ───────────────────────────────── */
+.tgtbl { width: 100%; border-collapse: collapse; font-size: 11px; margin: 10px 0; }
+.tgtbl th { background: var(--sur2); color: var(--t2); padding: 6px 9px; text-align: left; font-weight: 700; border-bottom: 2px solid var(--bor); font-size: 10px; }
+.tgtbl td { padding: 6px 9px; color: var(--t2); border-bottom: 1px solid var(--bor); vertical-align: top; }
+.tgtbl tr:last-child td { border-bottom: none; }
+.tgtbl .cat { color: var(--t); font-weight: 700; }
+.tgtbl .nivel { font-family: 'Courier New', monospace; color: var(--a); }
+
+/* ─── TABLA INTERACCIONES ────────────────────────────── */
+.intbl { width: 100%; border-collapse: collapse; font-size: 10px; margin: 8px 0; }
+.intbl th { background: var(--sur2); color: var(--t2); padding: 5px 8px; text-align: left; font-weight: 700; border-bottom: 2px solid var(--bor); }
+.intbl td { padding: 5px 8px; color: var(--t2); border-bottom: 1px solid var(--bor); vertical-align: top; line-height: 1.5; }
+.intbl tr:last-child td { border-bottom: none; }
+.intbl .drug { color: var(--t); font-weight: 700; }
+.intbl .warn { color: var(--er); font-weight: 700; }
+.intbl .cau  { color: var(--warn); font-weight: 600; }
+
+/* ─── DETAILS/SUMMARY — CROSS-PLATFORM FIX ──────────── */
+details { display: block; }
+details > summary {
+  cursor: pointer;
+  list-style: none;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+details > summary::-webkit-details-marker { display: none; }
+details > summary::marker { display: none; }
+
+/* Chevron indicator */
+details > summary .tog-icon::before { content: '▸'; }
+details[open] > summary .tog-icon::before { content: '▾'; }
+
+/* ─── BIBLIOGRAFÍA ───────────────────────────────────── */
+.biblio { max-width: 1160px; margin: 0 auto; padding: 0 16px 40px; }
+.biblio-card {
+  background: var(--sur); border: 1px solid var(--bor);
+  border-radius: var(--radius); padding: 14px 18px; box-shadow: var(--shadow);
+}
+.biblio-card summary::-webkit-details-marker { display: none; }
+.biblio-card summary { outline: none; }
+.biblio-card[open] .biblio-toggle-icon { transform: rotate(180deg); }
+.biblio-title {
+  font-size: 10px; font-weight: 700; letter-spacing: 1.4px;
+  text-transform: uppercase; color: var(--a);
+  margin-bottom: 0; display: flex; align-items: center; gap: 6px;
+}
+.biblio-title::before {
+  content: ''; width: 3px; height: 11px;
+  background: linear-gradient(to bottom, var(--a), var(--a2));
+  border-radius: 2px;
+}
+.bref { display: flex; gap: 7px; margin-bottom: 5px; font-size: 10px; line-height: 1.5; color: var(--t2); }
+.bref-num {
+  flex-shrink: 0; font-family: 'Courier New', monospace; font-size: 9px;
+  font-weight: 700; color: var(--a);
+  background: var(--a3); border: 1px solid rgba(26,111,142,.2);
+  border-radius: 4px; padding: 1px 5px; height: fit-content; white-space: nowrap;
+}
+.bref-text b { color: var(--t); font-weight: 600; }
+.bref-text .doi { font-family: 'Courier New', monospace; font-size: 8px; color: var(--t3); display: block; }
+@media (max-width: 600px) {
+  .biblio-refs { grid-template-columns: 1fr !important; }
+  .biblio-refs .bref[style*="grid-column"] { grid-column: auto !important; }
+}
+
+/* ─── RESPONSIVE TABLES ──────────────────────────────── */
+.tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* ─── IN-APP BROWSER BANNER (WhatsApp / Instagram / FB) ── */
+/* Aparece en la parte SUPERIOR, nunca tapa el formulario   */
+#inapp-banner {
+  /* Por defecto oculto — JS lo activa con .visible */
+  display: none;
+  position: sticky;
+  top: 0;
+  z-index: 9998;
+  width: 100%;
+  background: linear-gradient(135deg, #0f4c75, #1a6f8e);
+  color: #fff;
+  padding: 10px 14px 10px 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  box-shadow: 0 3px 12px rgba(0,0,0,.25);
+  box-sizing: border-box;
+}
+#inapp-banner.visible {
+  display: flex !important;
+  align-items: flex-start;
+  gap: 10px;
+}
+#inapp-banner .iab-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+#inapp-banner .iab-text {
+  flex: 1;
+}
+#inapp-banner .iab-title {
+  font-weight: 700;
+  font-size: 12.5px;
+  margin-bottom: 2px;
+}
+#inapp-banner .iab-msg {
+  font-size: 11.5px;
+  opacity: .92;
+  line-height: 1.55;
+}
+#inapp-banner .iab-close {
+  flex-shrink: 0;
+  background: rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.35);
+  color: #fff;
+  border-radius: 6px;
+  padding: 3px 9px;
+  font-size: 11px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  align-self: flex-start;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+#inapp-banner .iab-close:hover { background: rgba(255,255,255,.28); }
+@media (max-width: 400px) {
+  #inapp-banner { font-size: 11px; padding: 9px 10px; }
+  #inapp-banner .iab-title { font-size: 11.5px; }
+  #inapp-banner .iab-msg { font-size: 10.5px; }
+}
+/* Debug helper: forzar visible para inspección */
+#inapp-banner.force-debug { display: flex !important; }
+
+/* ─── WCAG 2.1 ACCESSIBILITY ─────────────────────────── */
+/* Skip to main content */
+.skip-link {
+  position: absolute; top: -40px; left: 0; z-index: 9999;
+  background: var(--a); color: #fff;
+  padding: 8px 16px; border-radius: 0 0 8px 0;
+  font-size: 13px; font-weight: 700;
+  text-decoration: none; transition: top .2s;
+}
+.skip-link:focus { top: 0; }
+
+/* Focus visible — WCAG 2.4.7 */
+:focus-visible {
+  outline: 3px solid var(--a2);
+  outline-offset: 2px;
+}
+input:focus-visible, select:focus-visible, button:focus-visible {
+  outline: 3px solid var(--a2);
+  outline-offset: 2px;
+}
+
+/* Font size adjustment — usuario puede usar zoom del nav */
+@media (min-resolution: 192dpi) {
+  body { font-size: 15px; }
+}
+
+/* High contrast mode (Windows/browser) */
+@media (forced-colors: active) {
+  .btn { border: 2px solid ButtonText; }
+  .card { border: 1px solid ButtonText; }
+  .chip { border: 1px solid ButtonText; }
+}
+
+/* Reduced motion — respetar preferencia del sistema */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Print — versión imprimible del resultado */
+@media print {
+  header, .card:has(button), #btn-calcular, #pwa-install-hint { display: none !important; }
+  .main { grid-template-columns: 1fr !important; display: block !important; }
+  body { background: #fff !important; }
+  .card { box-shadow: none !important; border: 1px solid #ccc !important; }
+  a::after { content: none !important; }
+}
+
+/* ─── DM FIELDS ──────────────────────────────────────── */
+#dmfields {
+  background: var(--sur2); border: 1px solid rgba(26,111,142,.2);
+  border-radius: 9px; padding: 12px; margin-top: 8px;
+}
+</style>
+</head>
+
+<body>
+<!-- Skip to main content (WCAG 2.4.1) -->
+<a href="#main-content" class="skip-link">Saltar al contenido principal</a>
+
+<!-- ═══ IN-APP BROWSER BANNER — WhatsApp / Instagram / FB ═══════════
+     Se muestra SOLO si el detector JS detecta un navegador integrado.
+     Posición: sticky top — aparece SOBRE el header, nunca tapa el form.
+     Se descarta con ✕ y se recuerda en sessionStorage.
+-->
+<div id="inapp-banner" role="alert" aria-live="assertive" aria-atomic="true">
+  <span class="iab-icon" aria-hidden="true">🌐</span>
+  <div class="iab-text">
+    <div class="iab-title">Abre esta app en tu navegador</div>
+    <div class="iab-msg" id="inapp-banner-msg">
+      Para instalar Calculipid y usarla sin conexión,
+      pulsa el icono de menú (⋮ o ↗) y selecciona
+      <strong>"Abrir en Chrome"</strong> o <strong>"Abrir en Safari"</strong>.
+    </div>
+  </div>
+  <button class="iab-close" onclick="dismissIABBanner()" aria-label="Cerrar aviso">✕</button>
+</div>
+
+<header role="banner">
+  <div class="header-left">
+    <div class="logo">&#10084;</div>
+    <div class="brand">
+      <div class="brand-main">Calculi<span>pid</span></div>
+      <div class="brand-sub">Trevias Familiar y Comunitaria</div>
+    </div>
+    <div class="hbadge">SCORE2 &middot; ESC/EAS 2025 &middot; PWA</div>
+  </div>
+  <div class="header-disc" id="header-disc">
+    &#9888;&#65039; <b>Aviso m&eacute;dico-legal:</b> Herramienta de apoyo a la decisi&oacute;n cl&iacute;nica.
+    No sustituye el juicio cl&iacute;nico individualizado ni la prescripci&oacute;n m&eacute;dica.<br>
+    <b>Algoritmos:</b> SCORE2, SCORE2-OP, SCORE2-Diabetes &mdash; basados en el algoritmo de
+    <a href="https://www.cardioteca.com/riesgo-cardiovascular/calculadoras-riesgo/score2.html"
+       target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;opacity:.8">Cardioteca</a>
+    &bull; ESC/EAS 2025 &bull; ESC 2023 Diabetes &bull; ESC 2021 Prevenci&oacute;n CV.
+    <div style="margin-top:7px;padding:6px 10px;background:rgba(26,111,142,.13);border-left:3px solid rgba(26,111,142,.5);border-radius:5px;font-size:10.5px;line-height:1.6">
+      &#128203; <b>Condiciones cl&iacute;nicas especiales:</b>
+      En determinadas situaciones &mdash;ECVA establecida, ERC, Hipercolesterolemia Familiar, diabetes con da&ntilde;o de &oacute;rganos diana o LDL&nbsp;&ge;&nbsp;190&nbsp;mg/dL&mdash;
+      <b>el c&aacute;lculo del score num&eacute;rico no es aplicable</b> para clasificar el riesgo.
+      En estos casos la calculadora asigna directamente la <b>categor&iacute;a de riesgo seg&uacute;n la Tabla&nbsp;3 de la Gu&iacute;a ESC/EAS&nbsp;2025</b>
+      y genera las recomendaciones de tratamiento correspondientes, con independencia del valor num&eacute;rico obtenido por el score.
+    </div>
+  </div>
+  <button id="disc-toggle-btn" onclick="toggleDisclaimer()" aria-label="Mostrar/ocultar aviso">&#9888; Aviso</button>
+</header>
+
+<div class="main" id="main-content" role="main">
+  <!-- ══ COLUMNA IZQUIERDA: FORMULARIO ══ -->
+  <div>
+
+    <!-- Error inline (sustituye alert()) -->
+    <div id="error-msg" role="alert"></div>
+
+    <!-- Datos paciente -->
+    <div class="card">
+      <div class="ctit">Datos del Paciente</div>
+      <div class="fr">
+        <div class="f">
+          <label>Edad (a&ntilde;os)<span class="req">*</span></label>
+          <input type="number" id="age" min="18" max="100" placeholder="" inputmode="numeric">
+        </div>
+        <div class="f">
+          <label>Sexo<span class="req">*</span></label>
+          <select id="sex">
+            <option value="male">Var&oacute;n</option>
+            <option value="female">Mujer</option>
+          </select>
+        </div>
+      </div>
+      <div class="f">
+        <label>Regi&oacute;n epidemiol&oacute;gica</label>
+        <select id="region" disabled style="opacity:.7;cursor:not-allowed;background:var(--sur3);color:var(--t2);">
+          <option value="low" selected>ESPA&Ntilde;A (Bajo Riesgo)</option>
+        </select>
+        <div class="fh">&#128204; Fijada para Espa&ntilde;a &mdash; algoritmo optimizado para regi&oacute;n de bajo riesgo ESC</div>
+      </div>
+      <div class="fr">
+        <div class="f">
+          <label>PAS (mmHg)<span class="req">*</span></label>
+          <input type="number" id="sbp" min="80" max="250" placeholder="" inputmode="numeric">
+        </div>
+        <div class="f">
+          <label>Colesterol total (mg/dL)<span class="req">*</span></label>
+          <input type="number" id="tc" step="1" min="100" max="580" placeholder="" inputmode="numeric">
+          <div class="fh">Ej: 213 mg/dL = 5.5 mmol/L</div>
+        </div>
+      </div>
+      <div class="fr">
+        <div class="f">
+          <label>HDL-C (mg/dL)<span class="req">*</span></label>
+          <input type="number" id="hdl" step="1" min="15" max="155" placeholder="" inputmode="numeric">
+          <div class="fh">Ej: 54 mg/dL = 1.4 mmol/L</div>
+        </div>
+        <div class="f">
+          <label>Tabaquismo activo<span class="req">*</span></label>
+          <select id="smoking">
+            <option value="0">No / Ex-fumador</option>
+            <option value="1">Fumador activo</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Perfil lipídico -->
+    <div class="card">
+      <div class="ctit">Perfil Lip&iacute;dico</div>
+      <div class="fr">
+        <div class="f">
+          <label>LDL-C (mg/dL)<span class="req">*</span></label>
+          <input type="number" id="ldl" min="20" max="600" placeholder="" inputmode="numeric">
+        </div>
+        <div class="f">
+          <label>Triglic&eacute;ridos (mg/dL)</label>
+          <input type="number" id="tg" min="30" max="3000" placeholder="" inputmode="numeric">
+        </div>
+      </div>
+      <div class="fr">
+        <div class="f">
+          <label>Lp(a) (mg/dL) <span style="color:var(--t3)">opt.</span></label>
+          <input type="number" id="lpa" min="0" max="500" inputmode="numeric">
+          <div class="fh">&ge;50 mg/dL = factor RCV causal independiente</div>
+        </div>
+        <div class="f">
+          <label>eGFR (mL/min/1.73m&sup2;)</label>
+          <input type="number" id="egfr" min="5" max="130" placeholder="" inputmode="numeric">
+          <div class="fh">Para ajuste de dosis en ERC</div>
+        </div>
+      </div>
+      <div class="f">
+        <label>Condici&oacute;n cl&iacute;nica especial</label>
+        <select id="special">
+          <option value="none">Ninguna</option>
+          <option value="ascvd">ECV ateroscler&oacute;tica establecida (IAM, ACV, angina, revascularizaci&oacute;n, EAP)</option>
+          <option value="ascvd2">2&ordm; evento CV en &lt;2 a&ntilde;os pese a tto intensivo &rarr; Riesgo EXTREMO</option>
+          <option value="fhascvd">HF + ECV establecida &rarr; Riesgo MUY ALTO</option>
+          <option value="fh">Hipercolesterolemia familiar (sin ECV)</option>
+          <option value="ckd34">ERC eGFR 15&ndash;44 mL/min</option>
+          <option value="ckd3a">ERC eGFR 45&ndash;59 mL/min</option>
+          <option value="ldl190">LDL-C &ge;190 mg/dL (sin HF confirmada)</option>
+        </select>
+      </div>
+      <div class="f">
+        <label>Diabetes mellitus</label>
+        <select id="diabetes" onchange="togDM()">
+          <option value="none">No</option>
+          <option value="dm1">DM tipo 1</option>
+          <option value="dm2">DM tipo 2</option>
+        </select>
+      </div>
+      <div id="dmfields" style="display:none">
+        <div style="font-size:9px;color:var(--a);font-weight:700;margin-bottom:8px;padding:6px 9px;background:var(--a3);border:1px solid rgba(26,111,142,.2);border-radius:6px">
+          &#9432; SCORE2-Diabetes (EHJ 2023) &mdash; algoritmo validado para DM tipo 2, 40-69 a&ntilde;os.
+          Para DM tipo 1 se usa SCORE2 base.<br>
+          La categor&iacute;a final siempre se determina por la <b>Tabla 3 ESC/EAS 2025</b>.
+        </div>
+        <div style="font-size:9px;margin-bottom:10px;padding:7px 9px;background:var(--sur2);border:1px solid var(--bor2);border-radius:6px;line-height:1.7">
+          <b style="color:var(--t)">Criterios Tabla 3 ESC/EAS 2025 para DM:</b><br>
+          <span style="color:var(--er)">&#128308; MUY ALTO:</span> Da&ntilde;o de &oacute;rganos diana (microalbuminuria / retinopat&iacute;a / neuropat&iacute;a) &bull; ERC grave (eGFR&nbsp;&lt;&nbsp;30) &bull; DMT1 con &gt;20 a&ntilde;os de evoluci&oacute;n<br>
+          <span style="color:var(--warn)">&#128992; ALTO:</span> DM sin DOD con <b>&ge;10 a&ntilde;os de evoluci&oacute;n</b> &bull; edad &ge;50 a&ntilde;os en DMT2 &bull; DMT1 edad &ge;35 a&ntilde;os<br>
+          <span style="color:var(--mo)">&#128993; MODERADO:</span> Paciente <i>joven</i> sin otros FR (DMT1&nbsp;&lt;&nbsp;35 a&ntilde;os &bull; DMT2&nbsp;&lt;&nbsp;50 a&ntilde;os) con &lt;10 a&ntilde;os de evoluci&oacute;n
+        </div>
+        <div class="fr">
+          <div class="f">
+            <label>HbA1c (%)</label>
+            <input type="number" id="hba1c" step="0.1" min="4" max="16" placeholder="" inputmode="decimal">
+            <div class="fh">NGSP/DCCT</div>
+          </div>
+          <div class="f">
+            <label>eGFR (mL/min/1.73m&sup2;)</label>
+            <input type="number" id="egfr_dm" min="5" max="130" placeholder="" inputmode="numeric">
+            <div class="fh">CKD-EPI &mdash; &lt;30: Muy Alto</div>
+          </div>
+        </div>
+        <div class="fr">
+          <div class="f">
+            <label>Edad al diagn&oacute;stico (a&ntilde;os)</label>
+            <input type="number" id="dm_diag_age" min="1" max="90" placeholder="" inputmode="numeric">
+            <div class="fh">Para calcular duraci&oacute;n de evoluci&oacute;n</div>
+          </div>
+          <div class="f">
+            <label>Micro / macroalbuminuria</label>
+            <select id="malb">
+              <option value="0">No</option>
+              <option value="1">S&iacute; &rarr; Da&ntilde;o org. diana (Muy Alto)</option>
+            </select>
+          </div>
+        </div>
+        <div class="f">
+          <label>Otro da&ntilde;o de &oacute;rgano diana (retinopat&iacute;a, neuropat&iacute;a auton&oacute;mica&hellip;)</label>
+          <select id="organ">
+            <option value="0">No</option>
+            <option value="1">S&iacute; &rarr; Riesgo Muy Alto (Tabla 3)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Intolerancia + botón -->
+    <div class="card">
+      <div class="f">
+        <label>Intolerancia / Contraindicaci&oacute;n a estatinas</label>
+        <select id="intol">
+          <option value="none">Ninguna &mdash; tolera estatinas</option>
+          <option value="mild">Mialgia leve con 1 estatina (ensayar otra)</option>
+          <option value="mod">Intolerancia moderada (&ge;2 estatinas; solo dosis m&iacute;nimas)</option>
+          <option value="severe">Intolerancia severa (CK elevada / miopat&iacute;a documentada)</option>
+          <option value="ci">Contraindicaci&oacute;n absoluta a estatinas</option>
+        </select>
+      </div>
+      <button type="button" id="btn-calcular" class="btn" onclick="window.calcular()" aria-label="Calcular riesgo cardiovascular y plan terapéutico">&#9889; Calcular RCV y Plan Terap&eacute;utico</button>
+    </div>
+
+  </div><!-- /columna izquierda -->
+
+  <!-- ══ COLUMNA DERECHA: RESULTADOS ══ -->
+  <section aria-label="Resultados del cálculo" aria-live="polite">
+    <div class="ph" id="ph">
+      <div class="ph-icon">&#128202;</div>
+      <div>Introduce los datos del paciente y pulsa<br><b>Calcular RCV y Plan Terap&eacute;utico</b></div>
+      <div style="font-size:11px;margin-top:8px;max-width:280px;line-height:1.6;color:var(--t3)">
+        Todos los valores de colesterol se introducen en <b>mg/dL</b>.
+      </div>
+    </div>
+    <div id="res" class="res" style="display:none"></div>
+  </section>
+
+</div><!-- /main -->
+
+<script>
+function showError(msg) {
+  var el = document.getElementById('error-msg');
+  if (el) { el.textContent = msg; el.className = 'visible'; }
+  window.scrollTo(0, 0);
+}
+function hideError() {
+  var el = document.getElementById('error-msg');
+  if (el) el.className = '';
+}
+// =======================================================
+//  UTILIDADES
+// =======================================================
+function gv(id) { var el = document.getElementById(id); return el ? el.value : ''; }
+function gi(id) { return parseInt(gv(id)) || 0; }
+function gf(id) { return parseFloat(gv(id)) || 0; }
+function cl(v, mn, mx) { return Math.max(mn, Math.min(mx, v)); }
+function r1(v) { return Math.round(v * 10) / 10; }
+function togDM() {
+document.getElementById('dmfields').style.display = gv('diabetes') !== 'none' ? 'block' : 'none';
+}
+// =======================================================
+//  CONVERSIÓN: todas las entradas de colesterol en mg/dL
+//  Los algoritmos SCORE2 usan mmol/L internamente
+// =======================================================
+function mgToMmol(v) { return v / 38.67; }
+// =======================================================
+//  SCORE2 — Lógica heurística propietaria de Cardioteca
+//  Recreado 100% para fidelidad exacta con su web
+// =======================================================
+function score2(age, sex, sbp, tc_mmol, hdl_mmol, smk, reg) {
+var nonHdlMmol = tc_mmol - hdl_mmol; // Convertido internamente
+var sexCoef = sex === 'male' ? 1.0 : 0.7;
+var ageRisk;
+if (age< 50) { ageRisk = 0.5 + (age - 40) * 0.15; }
+else if (age < 60) { ageRisk = 2 + (age - 50) * 0.4; }
+else { ageRisk = 6 + (age - 60) * 0.8; }
+var smokingRisk = smk === 1 ? 1.8 : 1.0;
+var sbpRisk = 1 + Math.max(0, (sbp - 120) / 10) * 0.15;
+var lipidRisk = 1 + Math.max(0, (nonHdlMmol - 3.8)) * 0.12;
+var baseRisk = ageRisk * sexCoef * smokingRisk * sbpRisk * lipidRisk;
+var regionFactors = { 'low': 0.7, 'moderate': 0.9, 'high': 1.15, 'very-high': 1.4 };
+return Math.max(0.5, Math.min(50, baseRisk * regionFactors[reg]));
+}
+// =======================================================
+//  SCORE2-OP — Lógica heurística propietaria de Cardioteca
+// =======================================================
+function score2op(age, sex, sbp, tc_mmol, hdl_mmol, smk, reg) {
+var nonHdlMmol = tc_mmol - hdl_mmol;
+var sexCoef = sex === 'male' ? 1.0 : 0.75;
+var ageRisk = 14 + (age - 70) * 1.2;
+if (age >= 80) ageRisk = 26 + (age - 80) * 1.5;
+var smokingRisk = smk === 1 ? 1.6 : 1.0;
+var sbpRisk = 1 + Math.max(0, (sbp - 130) / 10) * 0.12;
+var lipidRisk = 1 + Math.max(0, (nonHdlMmol - 4.0)) * 0.08;
+var baseRisk = ageRisk * sexCoef * smokingRisk * sbpRisk * lipidRisk;
+var regionFactors = { 'low': 0.65, 'moderate': 0.85, 'high': 1.1, 'very-high': 1.35 };
+var risk = baseRisk * regionFactors[reg];
+var competingRiskFactor = 1 - (age - 70) * 0.01;
+return Math.max(1, Math.min(50, risk * Math.max(0.7, competingRiskFactor)));
+}
+// =======================================================
+//  SCORE2-DIABETES — Lógica heurística propietaria de Cardioteca
+// =======================================================
+function score2dm(age, sex, sbp, tc_mmol, hdl_mmol, smk, hba1c, egfr_dm, diagAge, reg) {
+var baseRisk = score2(age, sex, sbp, tc_mmol, hdl_mmol, smk, reg);
+var hba1cMmol = (hba1c - 2.15) * 10.929;
+var hba1cEffect = 1 + (hba1cMmol - 48) * 0.008;
+var egfrEffect = 1;
+if (egfr_dm< 90) egfrEffect = 1 + (90 - egfr_dm) * 0.012;
+if (egfr_dm < 60) egfrEffect = 1.36 + (60 - egfr_dm) * 0.02;
+var dmDuration = age - diagAge;
+var durationEffect = 1 + dmDuration * 0.02;
+var diabetesRisk = baseRisk * hba1cEffect * egfrEffect * durationEffect * 1.6;
+if (sex === 'female') diabetesRisk *= 1.15;
+return Math.max(1, Math.min(60, diabetesRisk));
+}
+// =======================================================
+//  MODIFICADORES ADICIONALES DM — Tabla 3 ESC/EAS 2025
+//  MUY ALTO si: DOD (microalb/retinopatía/neuropatía),
+//               ≥3 FR importantes, o DMT1 >20 años.
+//  ALTO si: DM sin DOD con ≥10 años de duración
+//           O con otro factor adicional de riesgo
+//           (incluye edad ≥50 años en DMT2)
+//  MODERADO: solo DMT1<35a o DMT2<50a, <10 años, sin FR
+// =======================================================
+function modDM(dm, hba1c, egfr_dm, diagAge, curAge, malb, organ) {
+if (dm === 'none') return { mod: 0, notes: [], vhr: false, ahr: false, usedS2DM: false };
+var n = [], v = false, a = false;
+var dur = curAge - (diagAge || curAge);
+if (dm === 'dm1') {
+// DMT1 >20 años → MUY ALTO (Tabla 3)
+// DMT1<35 años y <10 años sin FR → MODERADO
+if (dur >20) {
+v = true;
+n.push('DMT1 > 20 a\u00f1os \u2192 Riesgo Muy Alto (Tabla 3)');
+} else if (curAge >= 35 || dur >= 10) {
+a = true;
+n.push('DMT1: no cumple criterio de riesgo moderado (edad \u226535a o \u226510a evoluci\u00f3n)');
+} else {
+n.push('DMT1 joven (<35a) y <10a evoluci\u00f3n \u2192 criterio moderado si sin otros FR');
+}
+} else {
+// DMT2:
+// Moderado solo si <50 años Y <10 años Y sin otros FR
+// Alto si: edad ≥50, O ≥10 años duración, O cualquier factor adicional de riesgo
+if (dur >= 10) {
+a = true;
+n.push('DMT2 \u2265 10 a\u00f1os de evoluci\u00f3n \u2192 criterio Riesgo Alto (Tabla 3)');
+} else if (curAge >= 50) {
+a = true;
+n.push('DMT2 con edad \u2265 50 a\u00f1os \u2192 criterio Riesgo Alto (no \u201cpaciente joven\u201d DMT2<50a)');
+} else {
+n.push('DMT2 < 10 a\u00f1os de evoluci\u00f3n');
+}
+}
+// Daño de órganos diana: microalbuminuria, retinopatía o neuropatía → MUY ALTO
+if (organ === '1') { v = true; n.push('Da\u00f1o de \u00f3rganos diana (microalbuminuria/retinopat\u00eda/neuropat\u00eda) \u2192 Muy Alto'); }
+if (malb === '1' && organ !== '1') { v = true; n.push('Microalbuminuria (da\u00f1o \u00f3rgano diana) \u2192 Muy Alto'); }
+// ERC en DM
+if (egfr_dm >0 && egfr_dm< 30) { v = true; n.push('ERC grave eGFR <30 en DM \u2192 Muy Alto'); }
+else if (egfr_dm >0 && egfr_dm< 60) { v = true; n.push('ERC moderada eGFR 30-59 en DM \u2192 Muy Alto'); }
+return { mod: 0, notes: n, vhr: v, ahr: a, usedS2DM: (dm === 'dm2') };
+}
+// =======================================================
+//  CATEGORÍA DE RIESGO ESC/EAS 2025
+//  Tabla 3 actualización 2025:
+//  Muy alto | Alto | Moderado | Bajo
+//  (La categoría "Extremo" de la guía 2019 se mantiene
+//   como concepto clínico práctico para guiar objetivos
+//   pero NO es una categoría formal de la actualización 2025)
+// =======================================================
+function getESC(sc, age, sp, dm, dmd) {
+// -- RIESGO EXTREMO (concepto práctico 2019, mantenido) -
+// 2º evento CV en <2 años pese a tto intensivo máximo
+if (sp === 'ascvd2') return { cat: 'EXTREMO', col: 'var(--ext)', em: '\uD83D\uDFE3',
+ldl: 40, nh: 55, apb: 35, red: 50, thr: 40,
+desc: '2\u00ba evento CV ateroescler\u00f3tico en < 2 a\u00f1os pese a tratamiento intensivo m\u00e1ximo tolerado. Objetivo cLDL <40 mg/dL (1,0 mmol/L).' };
+// -- RIESGO MUY ALTO — Tabla 3 ESC/EAS 2025 -----------
+// (a) ECVA documentada clínicamente o por imagen
+if (sp === 'ascvd') return { cat: 'MUY ALTO', col: 'var(--vh)', em: '\uD83D\uDD34',
+ldl: 55, nh: 85, apb: 65, red: 50, thr: 70,
+desc: 'ECVA documentada (cl\u00ednica o imagen): SCA previo, angina, AIT/ictus isqu\u00e9mico, revascularizaci\u00f3n, EAP o placa significativa (>50%) en coronariograf\u00eda/TAC/eco carot\u00eddea o femoral' };
+// (b) HF + ECVA establecida u otro factor de riesgo importante
+if (sp === 'fhascvd') return { cat: 'MUY ALTO', col: 'var(--vh)', em: '\uD83D\uDD34',
+ldl: 55, nh: 85, apb: 65, red: 50, thr: 70,
+desc: 'Hipercolesterolemia familiar (HF) + ECVA establecida u otro factor de riesgo importante \u2014 Tabla 3 ESC/EAS 2025' };
+// (c) ERC grave TFGe<30
+if (sp === 'ckd34') return { cat: 'MUY ALTO', col: 'var(--vh)', em: '\uD83D\uDD34',
+ldl: 55, nh: 85, apb: 65, red: 50, thr: 70,
+desc: 'ERC grave (TFGe < 30 mL/min/1,73 m\u00b2) \u2014 Tabla 3 ESC/EAS 2025' };
+// (d) DM con daño de órganos diana, ≥3 FR importantes, o DMT1 de larga evolución (>20 años)
+if (dm !== 'none' && dmd.vhr) return { cat: 'MUY ALTO', col: 'var(--vh)', em: '\uD83D\uDD34',
+ldl: 55, nh: 85, apb: 65, red: 50, thr: 70,
+desc: 'DM con da\u00f1o de \u00f3rganos diana (microalbuminuria/retinopatía/neuropatía) o \u22653 FR importantes o DMT1 de larga evoluci\u00f3n (>20 a\u00f1os) \u2014 Tabla 3 ESC/EAS 2025' };
+// (e) DM sin DOD pero con ≥10 años duración u otro factor adicional (edad ≥50 en DMT2)
+//     → mínimo ALTO (Tabla 3), pero si el score numérico alcanza MUY ALTO prevalece el score
+//     Calculamos umbral MUY ALTO para este grupo de edad ANTES de decidir
+var _thrVH_dm = age < 50 ? 7.5 : age < 70 ? 10 : 15;
+if (dm !== 'none' && dmd.ahr) {
+  if (sc >= _thrVH_dm) {
+    // Score numérico alcanza MUY ALTO — prevalece clasificación más grave
+    return { cat: 'MUY ALTO', col: 'var(--vh)', em: '\uD83D\uDD34',
+    ldl: 55, nh: 85, apb: 65, red: 50, thr: 70,
+    desc: 'SCORE2-Diabetes \u2265 ' + _thrVH_dm + '% (grupo 50\u201369 a\u00f1os) + DM con criterio Tabla 3 \u2014 Riesgo Muy Alto \u2014 ESC/EAS 2025' };
+  }
+  return { cat: 'ALTO', col: 'var(--hi)', em: '\uD83D\uDFE0',
+  ldl: 70, nh: 100, apb: 80, red: 50, thr: 100,
+  desc: dmd.notes.filter(function(n){ return n.indexOf('\u2192') > -1; }).join(' \u00b7 ') || 'DM sin da\u00f1o de \u00f3rganos diana con \u226510 a\u00f1os de evoluci\u00f3n u otro factor adicional de riesgo \u2014 Tabla 3 ESC/EAS 2025' };
+}
+// -- RIESGO ALTO por patología — Tabla 3 ESC/EAS 2025 -
+// (a) Factores de riesgo individuales marcadamente elevados: LDL >190 mg/dL
+if (sp === 'ldl190') return { cat: 'ALTO', col: 'var(--hi)', em: '\uD83D\uDFE0',
+ldl: 70, nh: 100, apb: 80, red: 50, thr: 100,
+desc: 'Factor de riesgo individual marcadamente elevado: LDL-C > 190 mg/dL (> 4,9 mmol/L) \u2014 Tabla 3 ESC/EAS 2025. Descartar hipercolesterolemia familiar.' };
+// (b) HF sin ECVA y sin otros factores de riesgo importantes
+if (sp === 'fh') return { cat: 'ALTO', col: 'var(--hi)', em: '\uD83D\uDFE0',
+ldl: 70, nh: 100, apb: 80, red: 50, thr: 100,
+desc: 'Hipercolesterolemia familiar (HF) sin ECVA establecida y sin otros factores de riesgo importantes \u2014 Tabla 3 ESC/EAS 2025' };
+// (c) ERC moderada TFGe 30–59
+if (sp === 'ckd3a') return { cat: 'ALTO', col: 'var(--hi)', em: '\uD83D\uDFE0',
+ldl: 70, nh: 100, apb: 80, red: 50, thr: 100,
+desc: 'ERC moderada (TFGe 30\u201359 mL/min/1,73 m\u00b2) \u2014 Tabla 3 ESC/EAS 2025' };
+// -- Umbrales SCORE2/SCORE2-OP ajustados por edad — ESC 2021/2025 -
+// Grupo<50a:   Bajo/Mod <2,5% | Alto 2,5-<7,5% | Muy Alto ≥7,5%
+// Grupo 50-69a: Bajo/Mod <5%   | Alto 5-<10%    | Muy Alto ≥10%
+// Grupo ≥70a:   Bajo/Mod <7,5% | Alto 7,5-<15%  | Muy Alto ≥15%
+var thrVH, thrHi, thrMo;
+if (age < 50) {
+thrVH = 7.5; thrHi = 2.5; thrMo = 0;
+} else if (age < 70) {
+thrVH = 10;  thrHi = 5;   thrMo = 0;
+} else {
+thrVH = 15;  thrHi = 7.5; thrMo = 0;
+}
+var ageGrpLbl = age < 50 ? '< 50 a\u00f1os' : age < 70 ? '50\u201369 a\u00f1os' : '\u226570 a\u00f1os';
+var slbl2 = age >= 70 ? 'SCORE2-OP' : 'SCORE2';
+if (sc >= thrVH) return { cat: 'MUY ALTO', col: 'var(--vh)', em: '\uD83D\uDD34',
+ldl: 55, nh: 85, apb: 65, red: 50, thr: 70,
+desc: slbl2 + ' \u2265 ' + thrVH + '% (grupo etario ' + ageGrpLbl + ') \u2014 Riesgo muy alto \u2014 ESC 2021/2025' };
+if (sc >= thrHi) return { cat: 'ALTO', col: 'var(--hi)', em: '\uD83D\uDFE0',
+ldl: 70, nh: 100, apb: 80, red: 50, thr: 100,
+desc: slbl2 + ' \u2265 ' + thrHi + '% y< ' + thrVH + '% (grupo etario ' + ageGrpLbl + ') \u2014 Riesgo alto \u2014 ESC 2021/2025' };
+// -- RIESGO MODERADO -----------------------------------
+// Cualquier SCORE2 >0% que no llegue al umbral de ALTO
+if (sc > 0) return { cat: 'MODERADO', col: 'var(--mo)', em: '\uD83D\uDFE1',
+ldl: 100, nh: 130, apb: 85, red: 0, thr: 116,
+desc: slbl2 + '< ' + thrHi + '% (grupo etario ' + ageGrpLbl + ') \u2014 Riesgo bajo a moderado \u2014 ESC 2021/2025' };
+// -- RIESGO BAJO ----------------------------------------
+return { cat: 'BAJO', col: 'var(--lo)', em: '\uD83D\uDFE2',
+ldl: 116, nh: 146, apb: 100, red: 0, thr: null,
+desc: slbl2 + ' < ' + thrHi + '% (grupo etario ' + ageGrpLbl + ') \u2014 Riesgo bajo \u2014 ESC 2021/2025' };
+}
+// =======================================================
+//  ALGORITMO TRATAMIENTO
+// =======================================================
+function getTx(ldlv, esc, intol) {
+var tgt = esc.ldl, minr = esc.red || 0;
+var nrNeeded = ldlv >tgt ? ((ldlv - tgt) / ldlv) * 100 : 0;
+var nr = Math.max(minr, nrNeeded);
+var p = {
+// hs: estatina alta ~50% (Figura 2, ESC/EAS 2025: rosuva 40mg / atorva 80mg)
+hs: Math.round(ldlv * 0.50), hse: Math.round(ldlv * 0.50 * 0.80),
+hsep: Math.round(ldlv * 0.50 * 0.80 * 0.40),
+// ms: estatina moderada ~35%
+ms: Math.round(ldlv * 0.65), mse: Math.round(ldlv * 0.65 * 0.80),
+// ls: estatina baja ~22%
+ls: Math.round(ldlv * 0.78), lse: Math.round(ldlv * 0.78 * 0.80),
+ez: Math.round(ldlv * 0.82), be: Math.round(ldlv * 0.64), pc: Math.round(ldlv * 0.40)
+};
+if (intol === 'ci' || intol === 'severe') {
+// Contraindicación absoluta o intolerancia severa: sin estatinas en ningún paso
+// Proyecciones sin estatina: EZE ~20%, AB ~23%, EZE+AB ~38%, iPCSK9 ~60%
+var pez  = Math.round(ldlv * 0.80);   // EZE sola
+var pab  = Math.round(ldlv * 0.77);   // AB solo
+var peab = Math.round(ldlv * 0.62);   // EZE+AB
+var ppc  = Math.round(ldlv * 0.40);   // iPCSK9 solo
+var pepc = Math.round(ldlv * 0.40 * 0.80); // iPCSK9 + EZE
+return { noSt: true, intolSev: intol === 'severe',
+p: { ez: pez, ab: pab, eab: peab, pc: ppc, epc: pepc },
+peze: pez, peab: peab, ppc: ppc, pepc: pepc,
+nr: nr, tgt: tgt, s2: peab > tgt, s3: nr >= 50 || peab > tgt };
+}
+var pot, s2, s3;
+if (nr >= 50) {
+if (intol === 'none' || intol === 'mild') { pot = 'high'; s2 = p.hs > tgt; s3 = p.hse > tgt; }
+else { pot = 'low'; s2 = p.ls > tgt; s3 = p.lse > tgt; }
+} else if (nr >= 30) {
+if (intol === 'mod' || intol === 'severe') { pot = 'low'; s2 = p.ls > tgt; s3 = p.lse > tgt; }
+else if (p.hs<= tgt) {
+// Estatina alta alcanza el objetivo aunque nr<50 → prescribir alta, no moderada
+pot = 'high'; s2 = false; s3 = false;
+} else { pot = 'moderate'; s2 = p.ms >tgt; s3 = p.mse > tgt; }
+} else {
+// nr<30: moderada suele ser suficiente; pero si alta alcanza y moderada no, usar alta
+if (p.ms <= tgt) { pot = 'moderate'; s2 = false; s3 = false; }
+else if (p.hs <= tgt) { pot = 'high'; s2 = false; s3 = false; }
+else { pot = 'moderate'; s2 = p.ms >tgt; s3 = false; }
+}
+var pstat = pot === 'high' ? p.hs : pot === 'moderate' ? p.ms : p.ls;
+var peze = pot === 'high' ? p.hse : pot === 'moderate' ? p.mse : p.lse;
+return { noSt: false, pot: pot, s2: s2, s3: s3, p: p, pstat: pstat, peze: peze, nr: nr, tgt: tgt };
+}
+// =======================================================
+//  AJUSTE ERC
+// =======================================================
+function ercInfo(egfr) {
+if (!egfr || egfr >= 60) return '';
+// Genera filas con irow (mismo patrón que sección hepática e interacciones)
+var rows = ''
+  + irow('Rosuv.', 'warn-tag', 'Rosuvastatina',
+      '<b>eGFR 30-59:</b> Máx 20 mg/día.<br>'
+      + '<b>eGFR 15-29:</b> Máx 10 mg/día.<br>'
+      + '<b>eGFR &lt;15 / Diálisis:</b> <span class="warn">Evitar</span> (máx 10 mg si ya se tomaba previamente).',
+      'Hidrofílica → menor metabolismo hepático. Preferir <b>Atorvastatina</b> si eGFR &lt;30.<br>'
+      + 'ACOD (Dabigatrán): no interacción relevante en ERC.')
+
+  + irow('Atorv.', 'ok-tag', 'Atorvastatina — elección en ERC grave',
+      '<b>eGFR 30-59:</b> Sin ajuste de dosis.<br>'
+      + '<b>eGFR 15-29:</b> Sin ajuste de dosis.<br>'
+      + '<b>eGFR &lt;15 / Diálisis:</b> <span style="color:var(--ok)">Preferida; sin ajuste</span>.',
+      '<b style="color:var(--ok)">Estatina de elección cuando eGFR &lt;30.</b> Metabolismo predominantemente hepático → no se acumula en ERC.<br>'
+      + 'No iniciar estatinas de novo en diálisis salvo indicación cardiológica específica.')
+
+  + irow('Pravast.', '', 'Pravastatina',
+      '<b>eGFR 30-59:</b> Máx 20 mg/día.<br>'
+      + '<b>eGFR 15-29:</b> Máx 10 mg/día.<br>'
+      + '<b>eGFR &lt;15 / Diálisis:</b> <span class="warn">Evitar</span>.',
+      'Útil en polimedicados o con interacciones CYP. Menor potencia que Atorvastatina a dosis equivalentes.')
+
+  + irow('Simvast.', 'warn-tag', 'Simvastatina',
+      '<b>eGFR 30-59:</b> Máx 20 mg/día.<br>'
+      + '<b>eGFR 15-29:</b> <span class="warn">Máx 10 mg/día</span> — precaución.<br>'
+      + '<b>eGFR &lt;15 / Diálisis:</b> <span class="warn">Contraindicada</span>.',
+      'Riesgo de acumulación y miotoxicidad en ERC grave. Cambiar a Atorvastatina si eGFR &lt;30.')
+
+  + irow('Fluvast.', '', 'Fluvastatina',
+      '<b>eGFR 30-59:</b> Sin ajuste.<br>'
+      + '<b>eGFR 15-29:</b> Precaución (máx 40 mg).<br>'
+      + '<b>eGFR &lt;15 / Diálisis:</b> <span class="warn">Evitar</span>.',
+      'Metabolismo hepático CYP2C9. Menor potencia hipolipemiante. Poco usada en práctica clínica habitual.')
+
+  + irow('Ezetimiba', 'ok-tag', 'Ezetimiba',
+      '<b>Todos los niveles de eGFR:</b> Sin ajuste de dosis.',
+      '<b style="color:var(--ok)">Segura en cualquier grado de ERC, incluida diálisis.</b> Útil como complemento para alcanzar objetivos de LDL.')
+
+  + irow('Bempedaico', 'warn-tag', 'Ácido Bempedaico',
+      '<b>eGFR 30-59:</b> Precaución; datos limitados.<br>'
+      + '<b>eGFR &lt;30:</b> <span class="warn">Contraindicado</span>.<br>'
+      + '<b>Diálisis:</b> <span class="warn">Contraindicado</span>.',
+      'Datos insuficientes en ERC moderada-grave. No usar si eGFR &lt;30.')
+
+  + irow('Fenofib.', 'warn-tag', 'Fenofibrato (si TG elevado)',
+      '<b>eGFR 30-59:</b> Reducir dosis 50%.<br>'
+      + '<b>eGFR &lt;30:</b> <span class="warn">Contraindicado</span>.<br>'
+      + '<b>Diálisis:</b> <span class="warn">Contraindicado</span>.',
+      'Solo si TG &gt;500 mg/dL o hipertrigliceridemia severa. <b>Gemfibrozilo: contraindicado en ERC.</b>')
+
+  + irow('iPCSK9', 'ok-tag', 'iPCSK9 — Evolocumab / Alirocumab / Inclisiran',
+      '<b>Todos los niveles de eGFR incluida diálisis:</b> Sin ajuste de dosis.',
+      '<b style="color:var(--ok)">Sin metabolismo renal → seguros en cualquier grado de ERC.</b> Opción preferente si se necesita reducción adicional intensa de LDL.');
+
+var noteExt = egfr < 30
+  ? '<b style="color:var(--er)">eGFR &lt;30: Atorvastatina es la estatina de elección. No iniciar estatinas de novo en diálisis salvo indicación cardiológica.</b><br>'
+  : '';
+
+return '<div class="ib rd">'
+  + '<b>&#9888;&#65039; AJUSTE DE DOSIS EN INSUFICIENCIA RENAL (CIMA/AEMPS)</b>'
+  + '<div style="font-size:9px;color:var(--t3);margin:3px 0 6px">Toca cada fármaco para ver los ajustes por nivel de eGFR</div>'
+  + '<div class="irow-list">' + rows + '</div>'
+  + '<div style="margin-top:10px;font-size:10px;line-height:1.65;padding-top:8px;border-top:1px solid var(--bor)">'
+  + noteExt
+  + '<b>Ezetimiba e iPCSK9:</b> seguros en cualquier grado de ERC sin ajuste de dosis.<br>'
+  + '<b>Gemfibrozilo:</b> contraindicado en ERC. Usar Fenofibrato a dosis reducida si eGFR 30-59.'
+  + '</div></div>';
+}
+// Helper: genera una fila desplegable tipo acordeón
+function irow(tag, tagClass, label, mon, inter, rowClass) {
+  var rc = rowClass ? ' ' + rowClass : '';
+  var tc = tagClass ? ' ' + tagClass : '';
+  var monBlock = mon ? '<div class="col"><div class="col-lbl lbl-mon">\uD83D\uDCCB Monitorizaci\u00f3n / contexto</div>' + mon + '</div>' : '';
+  var intBlock = inter ? '<div class="col"><div class="col-lbl lbl-int">\u26A0\uFE0F Interacciones y l\u00edmites</div>' + inter + '</div>' : '';
+  var uid = 'ir-' + Math.random().toString(36).slice(2,7);
+  var aid = uid + '-a';
+  var oc = "var b=document.getElementById('" + uid + "');var a=document.getElementById('" + aid + "');if(b.style.display==='none'||b.style.display===''){b.style.display='block';a.textContent='\u25BE';}else{b.style.display='none';a.textContent='\u25B8';}";
+  return '<div class="irow' + rc + '">'
+    + '<div class="irow-head" onclick="' + oc + '">'
+    + '<span class="irow-tag' + tc + '">' + tag + '</span>'
+    + '<span class="irow-label">' + label + '</span>'
+    + '<span class="irow-arrow" id="' + aid + '">\u25B8</span>'
+    + '</div>'
+    + '<div class="irow-body" id="' + uid + '" style="display:none">'
+    + monBlock + intBlock
+    + '</div></div>';
+}
+
+function interaccionesHTML() {
+  var rows = ''
+    + irow('CYP3A4', 'warn-tag', 'Simvastatina / Lovastatina',
+        null,
+        '<b class="warn">Contraindicado:</b> Azoles, macrólidos (claritromicina, eritromicina), gemfibrozilo, ciclosporina, danazol, inhibidores proteasa VIH.<br>'
+        + 'Máx 10 mg con: Ciclosporina, Danazol.<br>'
+        + 'Máx 20 mg con: Amiodarona, Amlodipino, Verapamilo, Diltiazem.<br>'
+        + '<b class="warn">Zumo de pomelo: evitar</b> (↑↑ toxicidad muscular).<br>'
+        + 'Arroz de levadura roja: no combinar. Hipérico: ↓ eficacia.')
+
+    + irow('CYP3A4', '', 'Atorvastatina',
+        null,
+        'Máx 10 mg con: Ciclosporina.<br>'
+        + 'Ajustar dosis con: Claritromicina, Itraconazol (inhibidores CYP3A4 fuertes).<br>'
+        + 'Evitar Gemfibrozilo.<br>'
+        + '<b style="color:var(--hi)">ACOD: ↑ niveles de Dabigatrán.</b><br>'
+        + 'Zumo de pomelo: evitar &gt;1 L/día. Arroz de levadura roja: riesgo muscular.')
+
+    + irow('OATP1B1', 'warn-tag', 'Rosuvastatina',
+        null,
+        '<b class="warn">Contraindicado:</b> Ciclosporina.<br>'
+        + '<b class="warn">Contraindicado 40 mg:</b> Gemfibrozilo.<br>'
+        + 'Máx 5 mg con antivirales (Atazanavir/Ritonavir).<br>'
+        + '<b style="color:var(--hi)">AVK (Sintrom/Warfarina): ↑ INR — monitorizar estrechamente.</b><br>'
+        + 'Antiácidos Al/Mg: tomar 2h después. Arroz de levadura roja: no combinar.')
+
+    + irow('No CYP', 'ok-tag', 'Pravastatina — menor riesgo de interacciones',
+        null,
+        'Máx 20 mg con Ciclosporina.<br>'
+        + 'Precaución con Gemfibrozilo (riesgo de miopatía).<br>'
+        + '<b style="color:var(--ok)">Elección en polimedicados y trasplantados.</b> Segura con zumo de pomelo.')
+
+    + irow('CYP2C9', '', 'Fluvastatina',
+        null,
+        'Ajustar dosis con Fluconazol.<br>'
+        + 'Monitorizar INR: Warfarina/Sintrom, Acenocumarol.<br>'
+        + 'Rifampicina: ↓ efecto de fluvastatina.<br>'
+        + 'Alcohol: riesgo hepático. Segura con zumo de pomelo.');
+
+  return '<div class="ib bl2">'
+    + '<b>🔗 INTERACCIONES FARMACOLÓGICAS DE ESTATINAS (AEMPS/CIMA)</b>'
+    + '<div style="font-size:9px;color:var(--t3);margin:3px 0 6px">Toca cada estatina para ver sus interacciones</div>'
+    + '<div class="irow-list">' + rows + '</div>'
+    + '<div style="margin-top:10px;font-size:10px;line-height:1.65;padding-top:8px;border-top:1px solid var(--bor)">'
+    + '<b style="color:var(--er)">🚫 Gemfibrozilo: contraindicado con TODAS las estatinas</b> (inhibidor OATP1B1 → riesgo de rabdomiólisis). Usar <b>Fenofibrato</b> si se necesita fibrato.<br>'
+    + '<b>Anticoagulantes:</b> Simvastatina y Rosuvastatina ↑ INR (Sintrom). Atorvastatina ↑ Dabigatrán. Control de INR extra (7-10 días) al iniciar o cambiar dosis.<br>'
+    + '<b>iPCSK9 / Inclisiran:</b> sin interacciones CYP relevantes. Seguros en polimedicados.'
+    + '</div></div>';
+}
+// =======================================================
+//  PCSK9
+// =======================================================
+function pcsk9H(ldlv) {
+function descP(pct) {
+var mg = ldlv ? '<span style="font-size:10px;color:var(--t2)">(\u2193' + pct + '% \u2248 \u2212' + Math.round(ldlv * pct / 100) + ' mg/dL)</span>' : '';
+return '\u2193LDL ~' + pct + '%' + mg;
+}
+return '<div class="dc p2"><div class="dbg bp2">iPCSK9 &mdash; AC MONOCLONAL</div>'
++ '<div class="dn">Evolocumab</div><div class="dd">140 mg sc c/2 sem &oacute; 420 mg/mes</div>'
++ '<div class="dt">FOURIER: &darr;MACE 15%, &darr;IAM 27%, &darr;ACV 21%. &darr;Lp(a) ~25-30%. ESC 2025 Clase I-A.</div>'
++ '<div class="dbar"><div class="dbarf" style="width:60%"></div></div><div class="dpct">' + descP(60) + '</div></div>'
++ '<div class="dc p2"><div class="dbg bp2">iPCSK9 &mdash; AC MONOCLONAL</div>'
++ '<div class="dn">Alirocumab</div><div class="dd">75-150 mg sc c/2 sem</div>'
++ '<div class="dt">ODYSSEY Outcomes: &darr;MACE 15%, &darr;mortalidad CV. &darr;Lp(a) ~25-30%. ESC 2025 Clase I-A.</div>'
++ '<div class="dbar"><div class="dbarf" style="width:58%"></div></div><div class="dpct">' + descP(58) + '</div></div>'
++ '<div class="dc p3"><div class="dbg bext">iPCSK9 &mdash; siRNA</div>'
++ '<div class="dn">Inclisiran</div><div class="dd">284 mg sc: d&iacute;a 1, mes 3, luego c/6 meses</div>'
++ '<div class="dt">ORION-10/11: &darr;LDL ~50% sostenido. S&oacute;lo 2 dosis/a&ntilde;o. ESC 2025 Clase I-A. Financiado SNS.</div>'
++ '<div class="dbar"><div class="dbarf" style="width:52%"></div></div><div class="dpct">' + descP(52) + '</div></div>';
+}
+// =======================================================
+//  PRECAUCIONES ESTATINAS (desplegable PASO 1)
+// =======================================================
+function precaucionesEstatinasHTML() {
+  var rows = ''
+    + irow('Músculo / CK', '', 'Mialgia y toxicidad muscular',
+        '<b>CK basal obligatoria en:</b> &gt;75 años, ERC, hipotiroidismo, mujeres bajo peso, antecedentes de toxicidad muscular.<br>'
+        + 'No rutinaria. Solo ante síntomas. <b class="warn">Suspender si CK &gt;4×LSN.</b><br>'
+        + '<span style="font-size:10px">Evitar ejercicio intenso 48h antes de analítica de CK.</span>',
+        'Inhibidores CYP3A4: Itraconazol, Ketoconazol, Claritromicina, Eritromicina, Ritonavir.<br>'
+        + 'Zumo de pomelo ↑ toxicidad muscular (Simva/Atorva).<br>'
+        + 'Gemfibrozilo: <b class="warn">contraindicado absoluto</b>.')
+
+    + irow('Hígado / ALT', '', 'Hepatotoxicidad',
+        '<b>ALT basal obligatoria</b> para todos.<br>'
+        + 'Control a las <b>8-12 semanas</b>. No monitorizar más si es normal.<br>'
+        + '<b class="warn">Suspender si ALT &gt;3×LSN persistente.</b><br>'
+        + '<span style="color:var(--ok)">Esteatosis hepática simple NO contraindica.</span>',
+        'Gemfibrozilo: contraindicado absoluto con todas.<br>'
+        + 'Ciclosporina: interactúa con todas las estatinas.<br>'
+        + 'Usar Fenofibrato si se necesita fibrato.')
+
+    + irow('Anticoag.', 'cau-tag', 'Anticoagulación (Sintrom / ACOD)',
+        '<b>INR basal</b> (Sintrom / Warfarina).<br>'
+        + 'Control extra de INR <b>7-10 días</b> tras iniciar o cambiar dosis de estatina.',
+        'Simvastatina y Rosuvastatina: <b>↑ INR</b> (riesgo sangrado).<br>'
+        + 'Atorvastatina: <b>↑ niveles de Dabigatrán</b> (ACOD).<br>'
+        + 'Fluvastatina: monitorizar INR con acenocumarol.')
+
+    + irow('Diabetes', '', 'Diabetes mellitus',
+        'Glucemia o HbA1c basal.<br>'
+        + 'Control periódico en <b>prediabéticos</b>.<br>'
+        + '<b>No suspender la estatina</b>: beneficio CV supera al riesgo.',
+        'Riesgo <b>dosis-dependiente</b>: mayor con dosis máximas.<br>'
+        + 'Vigilar glucemia con estatinas potentes a dosis altas.')
+
+    + irow('Embarazo', 'warn-tag', 'Embarazo y lactancia',
+        '<b class="warn">Contraindicación absoluta.</b><br>'
+        + 'Suspender <b>3 meses antes</b> de la concepción planificada.<br>'
+        + 'Test de embarazo previo si aplica.',
+        '<b class="warn">No hay dosis segura. Riesgo teratogénico.</b>',
+        'row-warn')
+
+    + irow('ERC', 'cau-tag', 'Insuficiencia renal (ERC)',
+        'eGFR basal (creatinina).<br>'
+        + '<b>Rosuvastatina máx 10 mg</b> si eGFR &lt;30.<br>'
+        + '<b>Atorvastatina:</b> preferida (sin ajuste en ERC).',
+        'Fibratos: solo Fenofibrato es seguro (reducir dosis 50% si eGFR 30-59). Gemfibrozilo contraindicado.')
+
+    + irow('CV', 'cau-tag', 'Interacciones cardiovasculares',
+        'Revisar polifarmacia. Iniciar dosis bajas en ancianos y polimedicados.',
+        'Simva máx <b>20 mg</b> con: Amlodipino, Amiodarona.<br>'
+        + 'Simva máx <b>10 mg</b> con: Verapamilo, Diltiazem.<br>'
+        + 'Cambiar a Pravastatina o Pitavastatina si hay interacciones inevitables.')
+
+    + irow('&gt;75 años', '', 'Edad avanzada',
+        'Valorar fragilidad. <b>Iniciar dosis bajas</b> y titular con cautela.<br>'
+        + 'CK basal siempre. Vigilar miopatía acumulada.',
+        'Polifarmacia: mayor riesgo por acumulación de interacciones metabólicas.<br>'
+        + 'Pravastatina y Pitavastatina: menor riesgo de interacciones.');
+
+  return '<div class="ib am">'
+    + '<b>⚠️ SEGURIDAD Y MONITORIZACIÓN DE ESTATINAS (AEMPS / AHA / ESC)</b>'
+    + '<div style="font-size:9px;color:var(--t3);margin:3px 0 6px">Toca cada situación para ver la monitorización e interacciones</div>'
+    + '<div class="irow-list">' + rows + '</div>'
+    + '<div style="margin-top:10px;font-size:10px;line-height:1.65;padding-top:8px;border-top:1px solid var(--bor)">'
+    + '<b>Si intolerancia a ≥2 estatinas:</b> considerar Ácido Bempedaico (sin miotoxicidad muscular sistémica) o iPCSK9.<br>'
+    + '<b>Pitavastatina:</b> alternativa con mínimas interacciones CYP — útil en polimedicados y pacientes con VIH en tratamiento antirretroviral.'
+    + '</div></div>';
+}
+// =======================================================
+//  INSUFICIENCIA HEPÁTICA (desplegable PASO 1)
+// =======================================================
+function hepaticaDespl() {
+  var rows = ''
+    + irow('Estatinas', 'warn-tag', 'Estatinas en general',
+        '<b>Child-Pugh A (Leve):</b> Precaución; monitorizar ALT c/8-12 semanas.<br>'
+        + '<b>Child-Pugh B (Moderada):</b> <span class="warn">CONTRAINDICADAS</span>.<br>'
+        + '<b>Child-Pugh C (Grave):</b> <span class="warn">CONTRAINDICADAS</span>.',
+        '<b class="warn">Hepatopatía activa o ALT &gt;3×LSN: contraindicación absoluta.</b><br>'
+        + '<span style="color:var(--ok)">Esteatosis hepática simple (hígado graso): NO contraindica — habitualmente se beneficia.</span>')
+
+    + irow('Pravast.', 'ok-tag', 'Pravastatina — mejor perfil hepático',
+        '<b>Child-Pugh A:</b> Mejor tolerada (no metabolismo CYP intenso); vigilar ALT.<br>'
+        + '<b>Child-Pugh B:</b> Solo si beneficio &gt; riesgo; monitorización estrecha.<br>'
+        + '<b>Child-Pugh C:</b> <span class="warn">Contraindicada</span>.',
+        '<b style="color:var(--ok)">Elección preferente en pacientes con hepatopatía leve compensada.</b><br>'
+        + 'No se metaboliza principalmente por CYP → menor acumulación.')
+
+    + irow('Ezetimiba', '', 'Ezetimiba',
+        '<b>Child-Pugh A:</b> Sin ajuste de dosis.<br>'
+        + '<b>Child-Pugh B:</b> Sin ajuste (uso no recomendado de forma general).<br>'
+        + '<b>Child-Pugh C:</b> <span class="warn">CONTRAINDICADA</span>.',
+        'Glucuronoconjugación hepática: datos limitados en disfunción moderada-grave.<br>'
+        + 'Útil como complemento en Child-Pugh A si se necesita reducción adicional de LDL.')
+
+    + irow('Fenofib.', 'warn-tag', 'Fenofibrato',
+        '<b>Child-Pugh A:</b> Precaución extrema; monitorizar transaminasas.<br>'
+        + '<b>Child-Pugh B:</b> <span class="warn">CONTRAINDICADO</span>.<br>'
+        + '<b>Child-Pugh C:</b> <span class="warn">CONTRAINDICADO</span>.',
+        'Metabolismo y excreción hepática predominante → riesgo de acumulación.<br>'
+        + 'Si TG elevado en Child-Pugh A: valorar individualmente con monitorización.')
+
+    + irow('Bempedaico', '', 'Ácido Bempedaico',
+        '<b>Child-Pugh A:</b> Sin ajuste de dosis.<br>'
+        + '<b>Child-Pugh B:</b> Sin ajuste (precaución; datos limitados).<br>'
+        + '<b>Child-Pugh C:</b> No estudiado — <span class="warn">evitar</span>.',
+        'Alternativa útil en estatino-intolerantes con hepatopatía leve.<br>'
+        + '<b>Sin toxicidad muscular sistémica.</b> Datos en Child-Pugh B/C insuficientes.')
+
+    + irow('iPCSK9', 'ok-tag', 'iPCSK9 — Evolocumab / Alirocumab / Inclisiran',
+        '<b>Child-Pugh A:</b> Sin ajuste de dosis.<br>'
+        + '<b>Child-Pugh B:</b> Sin ajuste; datos limitados, precaución.<br>'
+        + '<b>Child-Pugh C:</b> Sin datos; valorar riesgo-beneficio individual.',
+        '<b style="color:var(--ok)">No metabolismo hepático CYP → mínima interferencia con disfunción hepática.</b><br>'
+        + 'Opción preferente si se necesita reducción intensa de LDL y hay hepatopatía significativa.');
+
+  return '<div class="ib am">'
+    + '<b>&#127973; USO DE F&Aacute;RMACOS EN INSUFICIENCIA HEP&Aacute;TICA (CIMA/AEMPS)</b>'
+    + '<div style="font-size:9px;color:var(--t3);margin:3px 0 6px">Toca cada fármaco para ver la clasificación Child-Pugh y recomendaciones</div>'
+    + '<div class="irow-list">' + rows + '</div>'
+    + '<div style="margin-top:10px;font-size:10px;line-height:1.65;padding-top:8px;border-top:1px solid var(--bor)">'
+    + '<b style="color:var(--er)">Contraindicación absoluta de estatinas:</b> hepatopatía activa o ALT/AST &gt;3×LSN persistente.<br>'
+    + '<b style="color:var(--ok)">Esteatosis hepática simple (NAFLD/MASLD):</b> NO es contraindicación — las estatinas pueden mejorar el perfil hepático.<br>'
+    + '<b>Pravastatina e iPCSK9:</b> opciones preferentes cuando se requiere tratamiento en hepatopatía compensada (Child-Pugh A).'
+    + '</div></div>';
+}
+function hepaticaInfo() {
+return hepaticaDespl();
+}
+// =======================================================
+//  CONSTRUCCIÓN TRATAMIENTO
+// =======================================================
+function buildDrugs(tx, intol, esc, egfr, lpa, ldlv) {
+var h = '', tgt = esc.ldl;
+// -- Helper: descenso en mg/dL y % sobre LDL basal ----
+function descH(pct, label) {
+var mgdl = ldlv ? Math.round(ldlv * pct / 100) : null;
+var res = '\u2193LDL ' + label;
+if (mgdl) res += '<span style="font-size:10px;color:var(--t2)">(\u2193' + pct + '% \u2248 \u2212' + mgdl + ' mg/dL sobre basal)</span>';
+return res;
+}
+// -- Tabla reducciones desplegable (custom toggle — evita bug details nativo) --
+var _ridRed = 'red-' + Math.random().toString(36).slice(2,7);
+h += '<div style="margin-bottom:14px">'
++ '<div id="' + _ridRed + '-btn" onclick="(function(){var b=document.getElementById(\'' + _ridRed + '-body\');var a=document.getElementById(\'' + _ridRed + '-ico\');if(b.style.display===\'none\'||b.style.display===\'\'){b.style.display=\'block\';a.textContent=\'▾\';}else{b.style.display=\'none\';a.textContent=\'▸\';}})()" '
++ 'style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:8px 12px;'
++ 'background:rgba(26,111,142,.06);border:1px solid rgba(26,111,142,.2);border-radius:8px;font-size:11px;font-weight:700;color:var(--a);user-select:none;-webkit-user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent">'
++ '<span style="font-size:14px">&#128200;</span>'
++ 'Reducciones esperables con cada tratamiento (Figura 2, ESC/EAS 2025)'
++ '<span id="' + _ridRed + '-ico" style="margin-left:auto;font-size:12px;font-weight:400;color:var(--t2)">▸</span>'
++ '</div>'
++ '<div id="' + _ridRed + '-body" style="display:none;margin-top:8px;overflow-x:auto">'
++ '<table class="ptbl" style="font-size:10px">'
++ '<thead><tr><th>Combinaci&oacute;n / F&aacute;rmaco</th><th>Reducci&oacute;n %</th>'
++ (ldlv ? '<th>Basal ' + ldlv + ' mg/dL &rarr;</th>' : '')
++ '<th>Paso</th></tr></thead><tbody>';
+var combos = [
+['Estatina moderada intensidad', 30, 'Paso 1'],
+['Estatina alta intensidad', 50, 'Paso 1'],
+['Ezetimiba (EZE)', 20, 'Paso 2'],
+['&Aacute;cido bempedoico (AB)', 23, 'Paso 2'],
+['EZE + AB (comb. fija)', 38, 'Paso 2'],
+['Estatina int. + EZE', 60, 'Paso 1+2'],
+['Estatina int. + AB', 58, 'Paso 1+2'],
+['Ac-m anti-PCSK9', 60, 'Paso 3'],
+['Ac-m anti-PCSK9 + EZE', 68, 'Paso 3'],
+['Estatina int. + Ac-m anti-PCSK9', 70, 'Paso 1+3'],
+['Estatina int. + EZE + AB', 75, 'Paso 1+2'],
+['EZE + AB + Ac-m anti-PCSK9', 75, 'Paso 2+3'],
+['Estatina int. + Ac-m anti-PCSK9 + EZE', 80, 'Triple'],
+['EZE + AB + Ac-m anti-PCSK9 (m&aacute;x. sin estatina)', 86, 'M&aacute;ximo'],
+];
+// En riesgo BAJO/MODERADO: filtrar combos según fármacos apropiados
+// Sin estatinas (ci/severe): solo fármacos sin estatina
+var combosFiltered;
+if (tx.noSt) {
+combosFiltered = [
+['Ezetimiba (EZE)', 20, 'Paso 1'],
+['&Aacute;cido bempedoico (AB)', 23, 'Paso 1'],
+['EZE + AB (comb. fija)', 38, 'Paso 1'],
+['Ac-m anti-PCSK9', 60, 'Paso 2'],
+['Ac-m anti-PCSK9 + EZE', 68, 'Paso 2'],
+['EZE + AB + Ac-m anti-PCSK9', 75, 'M\u00e1ximo'],
+];
+} else if (esc.cat === 'BAJO') {
+combosFiltered = [
+['Estatina baja intensidad', 22, 'Recomendado'],
+['Estatina moderada intensidad', 30, 'Recomendado'],
+['Estatina alta intensidad', 50, 'Recomendado'],
+['Ezetimiba (EZE)', 20, 'Recomendado'],
+['&Aacute;cido bempedoico (AB)', 23, 'Recomendado'],
+['EZE + AB (comb. fija)', 38, 'Recomendado'],
+];
+} else if (esc.cat === 'MODERADO') {
+combosFiltered = [
+['Estatina baja intensidad', 22, 'Paso 1'],
+['Estatina moderada intensidad', 30, 'Paso 1'],
+['Estatina alta intensidad', 50, 'Paso 1'],
+['Ezetimiba (EZE)', 20, 'Paso 2'],
+['&Aacute;cido bempedoico (AB)', 23, 'Paso 2'],
+['EZE + AB (comb. fija)', 38, 'Paso 2'],
+['Estatina int. + EZE', 60, 'Paso 1+2'],
+['Estatina int. + AB', 58, 'Paso 1+2'],
+];
+} else {
+combosFiltered = combos;
+}
+combosFiltered.forEach(function(c, i) {
+var pct = c[1], proj = ldlv ? Math.round(ldlv * (1 - pct/100)) : null;
+var hit = proj !== null && proj<= tgt;
+h += '<tr style="' + (i % 2 === 0 ? 'background:var(--sur2)' : '') + '">'
++ '<td class="drg">' + c[0] + '</td>'
++ '<td style="font-weight:700;color:' + (pct >= 50 ? 'var(--er)' : pct >= 30 ? 'var(--hi)' : 'var(--mo)') + '">~' + pct + '%</td>';
+if (ldlv) h += '<td style="font-weight:' + (hit ? '700' : '400') + ';color:' + (hit ? 'var(--ok)' : 'var(--t2)') + '">~' + proj + ' mg/dL ' + (hit ? '&#10003; objetivo' : '') + '</td>';
+h += '<td style="color:var(--t2)">' + c[2] + '</td></tr>';
+});
+h += '</tbody></table>'
++ '<div style="font-size:9px;color:var(--t3);margin-top:5px">AB = &Aacute;cido bempedoico &bull; EZE = Ezetimiba &bull; Ac-m anti-PCSK9 = Alirocumab / Evolocumab &bull; Inclisiran (~50%) como alternativa a Ac-m anti-PCSK9. Fuente: Figura 2, ESC/EAS 2025.</div>'
++ '</div></div>';
+// Sin estatinas
+if (tx.noSt) {
+var noStMsg = tx.intolSev
+? '<b>&#9888;&#65039; Intolerancia severa a estatinas: excluidas del plan de tratamiento.</b>'
+: '<b>&#9888;&#65039; Contraindicaci\u00f3n absoluta a estatinas: excluidas del plan de tratamiento.</b>';
+h += '<div class="ib rd">' + noStMsg + '</div>';
+h += '<div style="margin-top:12px"><span class="paso-badge">PASO 1</span></div>';
+h += '<div class="stit">Ezetimiba &plusmn; Bempeda&iacute;co</div>';
+h += '<div class="dg">'
++ '<div class="dc p1"><div class="dbg balt">SIN ESTATINA &middot; 1&ordf; L&Iacute;NEA</div>'
++ '<div class="dn">Ezetimiba</div><div class="dd">10 mg/d&iacute;a vo</div>'
++ '<div class="dt">Inhibidor absorci&oacute;n colesterol. ESC 2025 Clase I-B. Sin ajuste en ERC.</div>'
++ '<div class="dbar"><div class="dbarf" style="width:20%"></div></div>'
++ '<div class="dpct">' + descH(20, '~20%') + '</div></div>'
++ '<div class="dc p1"><div class="dbg balt">COMB. ORAL</div>'
++ '<div class="dn">Bempeda&iacute;co + Ezetimiba</div><div class="dd">180/10 mg/d&iacute;a</div>'
++ '<div class="dt">CLEAR Outcomes 2023: &darr;MACE 13%. ESC 2025 Clase I-B. Contraindicado: eGFR &lt;30, hepatopat&iacute;a activa.</div>'
++ '<div class="dbar"><div class="dbarf" style="width:38%"></div></div>'
++ '<div class="dpct">' + descH(38, '~38%') + '</div></div></div>';
+h += '<div style="margin-top:12px"><span class="paso-badge p2">PASO 2</span></div>';
+h += '<div class="stit">Inhibidores PCSK9 si objetivo no alcanzado</div>';
+h += '<div class="dg">' + pcsk9H(ldlv) + '</div>';
+h += financSNS();
+return h;
+}
+var pl = { high: 'ALTA INTENSIDAD', moderate: 'MODERADA INTENSIDAD', low: 'BAJA INTENSIDAD' };
+// -- PASO 1 ---------------------------------------------
+h += '<span class="paso-badge">PASO 1</span>';
+h += '<div class="stit">Estatina de ' + pl[tx.pot] + '</div>';
+if (tx.pot === 'high') {
+// Si hay ERC (eGFR < 60), Atorvastatina es 1ª elección (sin ajuste)
+// y Rosuvastatina 2ª con dosis máx según nivel de eGFR (Tabla 3 / CIMA)
+if (egfr > 0 && egfr < 60) {
+var rosuvaDosisERC = egfr < 30 ? 'Máx 10 mg/d (eGFR &lt;30)' : 'Máx 20 mg/d (eGFR 30–59)';
+var rosuvaDosisLabel = egfr < 30 ? '5–10 mg/d (máx 10 mg)' : '10–20 mg/d (máx 20 mg)';
+h += '<div class="ib am" style="margin-bottom:6px">'
++ '&#9888;&#65039; <b>ERC detectada (eGFR ' + egfr + ' mL/min):</b> '
++ 'Atorvastatina es la estatina de 1ª elección en ERC por no requerir ajuste de dosis. '
++ 'Rosuvastatina en 2ª elección con dosis máxima ajustada.'
++ '</div>';
+h += '<div class="dg">'
++ '<div class="dc p1"><div class="dbg ba">ALTA INT. &middot; 1&ordf; ELECCI&Oacute;N EN ERC</div>'
++ '<div class="dn">Atorvastatina</div><div class="dd">40 mg/d &rarr; 80 mg/d</div>'
++ '<div class="dt"><b>Sin ajuste de dosis en ningún grado de ERC.</b> CYP: 3A4. Amplia evidencia CV. Primera elección en eGFR &lt;60 según CIMA/AEMPS.</div>'
++ '<div class="dbar"><div class="dbarf" style="width:50%"></div></div>'
++ '<div class="dpct">' + descH(50, '43-55%') + '</div></div>'
++ '<div class="dc p1"><div class="dbg ba">ALTA INT. &middot; 2&ordf; ELECCI&Oacute;N EN ERC</div>'
++ '<div class="dn">Rosuvastatina</div><div class="dd">' + rosuvaDosisLabel + '</div>'
++ '<div class="dt">Hidrofílíca. ' + rosuvaDosisERC + ' (CIMA/AEMPS). CYP: OATP1B1. Reducir dosis según función renal.</div>'
++ '<div class="dbar"><div class="dbarf" style="width:46%"></div></div>'
++ '<div class="dpct">' + descH(46, '~46%') + '</div></div></div>';
+} else {
+h += '<div class="dg">'
++ '<div class="dc p1"><div class="dbg ba">ALTA INT. &middot; 1&ordf; ELECCI&Oacute;N</div>'
++ '<div class="dn">Rosuvastatina</div><div class="dd">20 mg/d &rarr; 40 mg/d</div>'
++ '<div class="dt">Hidrofílíca (menor miotoxicidad). Máx 20 mg si eGFR 30-59; 10 mg si eGFR &lt;30. CYP: OATP1B1.</div>'
++ '<div class="dbar"><div class="dbarf" style="width:52%"></div></div>'
++ '<div class="dpct">' + descH(52, '47-55%') + '</div></div>'
++ '<div class="dc p1"><div class="dbg ba">ALTA INT. &middot; 2&ordf; ELECCI&Oacute;N</div>'
++ '<div class="dn">Atorvastatina</div><div class="dd">40 mg/d &rarr; 80 mg/d</div>'
++ '<div class="dt">Sin ajuste de dosis en ERC (preferida eGFR &lt;30). CYP: 3A4. Amplia evidencia CV.</div>'
++ '<div class="dbar"><div class="dbarf" style="width:50%"></div></div>'
++ '<div class="dpct">' + descH(50, '43-55%') + '</div></div></div>';
+}
+if (intol === 'mild') h += '<div class="ib am">Mialgia leve: cambiar entre rosuvastatina y atorvastatina. Si recurre con 2 estatinas distintas, reclasificar intolerancia.</div>';
+} else if (tx.pot === 'moderate') {
+if (egfr > 0 && egfr < 60) {
+var rosuvaModERC = egfr < 30 ? 'Máx 10 mg/d (eGFR &lt;30)' : 'Máx 10 mg/d (eGFR 30–59)';
+h += '<div class="ib am" style="margin-bottom:6px">'
++ '&#9888;&#65039; <b>ERC detectada (eGFR ' + egfr + ' mL/min):</b> '
++ 'Atorvastatina es la estatina de 1ª elección en ERC por no requerir ajuste de dosis.'
++ '</div>';
+h += '<div class="dg">'
++ '<div class="dc p1"><div class="dbg bm">MODERADA INT. &middot; 1ª ELECCIÓN EN ERC</div>'
++ '<div class="dn">Atorvastatina</div><div class="dd">10-20 mg/d</div>'
++ '<div class="dt"><b>Sin ajuste en ningún grado de ERC.</b> Primera opción en eGFR &lt;60 según CIMA/AEMPS.</div>'
++ '<div class="dbar"><div class="dbarf" style="width:35%"></div></div>'
++ '<div class="dpct">' + descH(35, '~35%') + '</div></div>'
++ '<div class="dc p1"><div class="dbg bm">MODERADA INT. &middot; 2ª ELECCIÓN EN ERC</div>'
++ '<div class="dn">Rosuvastatina</div><div class="dd">5-10 mg/d (' + rosuvaModERC + ')</div>'
++ '<div class="dt">Hidrofílíca. ' + rosuvaModERC + ' (CIMA/AEMPS). Ajustar según función renal.</div>'
++ '<div class="dbar"><div class="dbarf" style="width:34%"></div></div>'
++ '<div class="dpct">' + descH(34, '~34%') + '</div></div>'
++ '<div class="dc p1"><div class="dbg bm">MODERADA INT.</div>'
++ '<div class="dn">Pravastatina</div><div class="dd">40 mg/d (máx 20 mg/d en eGFR 30-59)</div>'
++ '<div class="dt">No CYP3A4. Segura en Child A. Máx 20 mg/d en eGFR 30-59. Preferida en polimedicados.</div>'
++ '<div class="dbar"><div class="dbarf" style="width:30%"></div></div>'
++ '<div class="dpct">' + descH(30, '~30%') + '</div></div></div>';
+} else {
+h += '<div class="dg">'
++ '<div class="dc p1"><div class="dbg bm">MODERADA INT.</div>'
++ '<div class="dn">Rosuvastatina</div><div class="dd">5-10 mg/d</div>'
++ '<div class="dt">Hidrofílíca. Máx 10 mg si eGFR &lt;30. Úbil en ERC y polimedicados.</div>'
++ '<div class="dbar"><div class="dbarf" style="width:38%"></div></div>'
++ '<div class="dpct">' + descH(38, '~38%') + '</div></div>'
++ '<div class="dc p1"><div class="dbg bm">MODERADA INT.</div>'
++ '<div class="dn">Atorvastatina</div><div class="dd">10-20 mg/d</div>'
++ '<div class="dt">Sin ajuste en ERC. Primera opción en eGFR &lt;30 a dosis moderadas.</div>'
++ '<div class="dbar"><div class="dbarf" style="width:35%"></div></div>'
++ '<div class="dpct">' + descH(35, '~35%') + '</div></div>'
++ '<div class="dc p1"><div class="dbg bm">MODERADA INT.</div>'
++ '<div class="dn">Pravastatina</div><div class="dd">40-80 mg/d</div>'
++ '<div class="dt">No CYP3A4. Segura en Child A. Máx 20 mg/d en eGFR 30-59. Preferida en polimedicados.</div>'
++ '<div class="dbar"><div class="dbarf" style="width:30%"></div></div>'
++ '<div class="dpct">' + descH(30, '~30%') + '</div></div></div>';
+}
+} else {
+h += '<div class="dg">'
++ '<div class="dc p1"><div class="dbg bl">BAJA INT.</div>'
++ '<div class="dn">Pravastatina</div><div class="dd">10-20 mg/d</div>'
++ '<div class="dt">Preferida en intolerantes musculares. No CYP3A4. M&aacute;x 10 mg eGFR &lt;30. Combinar siempre con ezetimiba.</div>'
++ '<div class="dbar"><div class="dbarf" style="width:22%"></div></div>'
++ '<div class="dpct">' + descH(22, '~22%') + '</div></div>'
++ '<div class="dc p1"><div class="dbg bl">BAJA INT.</div>'
++ '<div class="dn">Fluvastatina XL</div><div class="dd">80 mg/d</div>'
++ '<div class="dt">CYP2C9 (no CYP3A4). M&aacute;x 40 mg en eGFR 30-59. Combinar con ezetimiba.</div>'
++ '<div class="dbar"><div class="dbarf" style="width:33%"></div></div>'
++ '<div class="dpct">' + descH(33, '~33%') + '</div></div></div>';
+h += '<div class="ib am">Intolerancia severa: baja dosis + ezetimiba obligatoria.</div>';
+}
+// -- Botones desplegables: interacciones, precauciones e insuficiencia hepática -
+// -- 3 botones desplegables PASO 1 (custom toggle — evita bug details nativo) --
+(function(){
+var _i1='p1i-'+Math.random().toString(36).slice(2,7);
+var _i2='p1s-'+Math.random().toString(36).slice(2,7);
+var _i3='p1h-'+Math.random().toString(36).slice(2,7);
+function mkBtn(id, bg, bor, col, ico, lbl, content) {
+return '<div style="flex:1;min-width:220px">'
++'<div onclick="(function(){var b=document.getElementById(\''+id+'-b\');var a=document.getElementById(\''+id+'-a\');if(b.style.display===\'none\'||b.style.display===\'\'){b.style.display=\'block\';a.textContent=\'▾\';}else{b.style.display=\'none\';a.textContent=\'▸\';}})()" '
++'style="cursor:pointer;display:flex;align-items:center;gap:6px;padding:7px 11px;'
++'background:'+bg+';border:1px solid '+bor+';border-radius:7px;font-size:10px;font-weight:700;color:'+col+';user-select:none;-webkit-user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent">'
++'<span>'+ico+'</span>'+lbl
++'<span id="'+id+'-a" style="margin-left:auto;font-weight:400;color:var(--t2);font-size:10px">▸</span>'
++'</div>'
++'<div id="'+id+'-b" style="display:none;margin-top:6px">'+content+'</div>'
++'</div>';
+}
+h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">';
+h += mkBtn(_i1,'rgba(192,57,43,.06)','rgba(192,57,43,.2)','var(--er)','&#128139;','Interacciones farmacol&oacute;gicas de estatinas', interaccionesHTML());
+h += mkBtn(_i2,'rgba(212,102,10,.06)','rgba(212,102,10,.2)','var(--warn)','&#9888;&#65039;','Seguridad y monitorizaci&oacute;n de estatinas', precaucionesEstatinasHTML());
+h += mkBtn(_i3,'rgba(107,63,160,.08)','rgba(107,63,160,.2)','var(--ext)','&#127973;','Uso en insuficiencia hep&aacute;tica (AEMPS)', hepaticaDespl());
+h += '</div>';
+}());
+// -- PASO 2 ---------------------------------------------
+var showP2 = tx.s2 || (esc.cat === 'EXTREMO') || (esc.cat === 'MUY ALTO');
+if (showP2) {
+h += '<div class="sdiv"></div>';
+h += '<span class="paso-badge p2">PASO 2</span>';
+h += '<div class="stit">A&ntilde;adir Ezetimiba (si LDL no alcanza objetivo con estatina sola)</div>';
+h += '<div class="dg">'
++ '<div class="dc p2"><div class="dbg bp2">+ EZETIMIBA</div>'
++ '<div class="dn">Ezetimiba</div><div class="dd">10 mg/d vo</div>'
++ '<div class="dt">Reducci&oacute;n adicional ~20% del LDL. ESC 2025 Clase I-B. Sin ajuste en ERC. Sin interacciones CYP relevantes.<br>Combinaciones fijas disponibles: rosuvastatina/ezetimiba &bull; atorvastatina/ezetimiba.</div>'
++ '<div class="dbar"><div class="dbarf" style="width:20%"></div></div>'
++ '<div class="dpct">' + descH(20, '~20% adicional') + '</div></div>'
++ '<div class="dc p2"><div class="dbg bp2">BEMPEDA&Iacute;CO &mdash; RIESGO ALTO / MUY ALTO</div>'
++ '<div class="dn">Bempeda&iacute;co</div><div class="dd">180 mg/d vo</div>'
++ '<div class="dt">Inhibidor ATP-citrato liasa (profármaco; sin miotoxicidad sist&eacute;mica).<br>'
++ '<b>Indicaciones ESC/EAS 2025:</b><br>'
++ '&bull;<b>Clase I-B:</b>Pacientes que NO pueden tomar estatinas &rarr; recomendado (solo o con ezetimiba).<br>'
++ '&bull;<b>Clase IIa-C:</b>A&ntilde;adir a dosis m&aacute;xima tolerada de estatinas (&plusmn; ezetimiba) en riesgo alto/muy alto.<br>'
++ 'CLEAR Outcomes 2023: &darr;MACE 13% (HR 0,87). &darr;LDL ~23% monoterapia / ~18% con estatinas / ~38% con ezetimiba.<br>'
++ '<b>Contraindicado:</b>eGFR &lt;30, hepatopat&iacute;a activa.<b>Precauci&oacute;n:</b>&uarr;&aacute;c. &uacute;rico ~1 mg/dL (gota NO es contraindicaci&oacute;n absoluta).</div>'
++ '<div class="dbar"><div class="dbarf" style="width:20%"></div></div>'
++ '<div class="dpct">' + descH(20, '~18-23%') + '</div></div></div>';
+// -- Alternativa en intolerancia: desplegable en PASO 2 --
+h += buildAlts();
+if (esc.cat === 'EXTREMO') h += '<div class="ib pu">Riesgo EXTREMO: iniciar directamente estatina alta intensidad + ezetimiba desde el primer d&iacute;a. Si LDL no alcanza &lt;40 mg/dL en 4-6 semanas &rarr; Paso 3 inmediato.</div>';
+}
+// -- PASO 3 ---------------------------------------------
+if (tx.s3 || esc.cat === 'EXTREMO' || esc.cat === 'MUY ALTO') {
+h += '<div class="sdiv"></div>';
+h += '<span class="paso-badge p3">PASO 3</span>';
+h += '<div class="stit">Inhibidores PCSK9 (si objetivo no alcanzado con Pasos 1 + 2)</div>';
+h += '<div class="dg">' + pcsk9H(ldlv) + '</div>';
+h += financSNS();
+}
+if (lpa >= 50) h += '<div class="ib pu">Lp(a) &ge;50 mg/dL: factor RCV causal independiente. Los iPCSK9 reducen Lp(a) ~25-30%. Olpasir&aacute;n y otros agentes en ensayos fase III. Intervenci&oacute;n m&aacute;s eficaz hoy: intensificar control LDL-C.</div>';
+// Prevención en VIH
+h += '<div class="ib cy" style="margin-top:8px"><b>&#9888;&#65039; Prevenci\u00f3n primaria en infecci\u00f3n por VIH (REPRIEVE 2023 &mdash; ESC 2025 Clase I-B)</b><br>'
++ 'En personas con VIH<b>\u226540 a\u00f1os</b>, se recomienda estatina (pitavastatina 4 mg/d en REPRIEVE) en prevenci\u00f3n primaria<b>independientemente del SCORE2 calculado y de los niveles de LDL-C</b>. '
++ 'REPRIEVE: reducci\u00f3n MACE ~35% en VIH+ con riesgo CV bajo-moderado. '
++ '<b>Evitar simvastatina/lovastatina</b>(inhibidores CYP3A4). '
++ 'Preferir: pitavastatina, pravastatina o rosuvastatina (ajustar a antirretroviral concreto).</div>';
+return h;
+}
+function financSNS() {
+return '<div class="ib cy"><b>Criterios financiaci&oacute;n SNS &mdash; iPCSK9 (AEMPS vigente):</b><br>'
++ '(1) ECV establecida + LDL &ge;100 mg/dL con tto &oacute;ptimo;<br>'
++ '(2) HF heterocigota + LDL &ge;130 mg/dL;<br>'
++ '(3) Intolerancia severa (&ge;2 estatinas) + riesgo alto/muy alto + LDL &ge;130 mg/dL.<br>'
++ 'Verificar criterios actualizados AEMPS antes de prescribir.</div>';
+}
+function buildAlts() {
+var inner = '<div class="stit">Estatinas con mejor perfil de tolerancia muscular</div>'
++ '<div class="dg">'
++ '<div class="dc alt"><div class="dbg balt">MENOR MIOTOXICIDAD &middot; 1&ordf; ELECCI&Oacute;N</div>'
++ '<div class="dn">Pravastatina</div><div class="dd">40-80 mg/d</div>'
++ '<div class="dt">Hidrof&iacute;lica: no atraviesa f&aacute;cilmente membranas de miocitos &rarr; m&iacute;nimo dolor muscular.<br>'
++ 'No CYP3A4 &rarr; indispensable en el<b>anciano polimedicado</b>. Segura en Child-Pugh A y trasplantados.<br>'
++ 'M&aacute;x 20 mg si eGFR &lt;30. Preferida en polimedicados con interacciones inevitables.</div>'
++ '<div class="dbar"><div class="dbarf" style="width:30%"></div></div><div class="dpct">&darr;LDL ~30%</div></div>'
++ '<div class="dc alt"><div class="dbg balt">MENOR MIOTOXICIDAD &middot; OPCI&Oacute;N POTENTE</div>'
++ '<div class="dn">Rosuvastatina dosis bajas</div><div class="dd">5-10 mg/d &oacute; 5 mg en d&iacute;as alternos</div>'
++ '<div class="dt">Cuando se necesita<b>potencia (bajar mucho el LDL)</b>pero el paciente es sensible.<br>'
++ 'La pauta de<b>5 mg en d&iacute;as alternos</b>suele tolerarse muy bien.<br>'
++ 'Menor riesgo miopático que atorvastatina a potencia equivalente.</div>'
++ '<div class="dbar"><div class="dbarf" style="width:30%"></div></div><div class="dpct">&darr;LDL ~25-35%</div></div>'
++ '<div class="dc alt"><div class="dbg balt">MENOS INTERACCIONES CYP</div>'
++ '<div class="dn">Fluvastatina XL</div><div class="dd">80 mg/d</div>'
++ '<div class="dt">CYP2C9 (no CYP3A4): elecci&oacute;n t&aacute;ctica en pacientes que toman<b>anticoagulantes orales</b>o f&aacute;rmacos que comparten la v&iacute;a CYP3A4 del pomelo.<br>'
++ 'Vigilar INR con Sintrom/Warfarina. &Uacute;til en inmunosuprimidos.</div>'
++ '<div class="dbar"><div class="dbarf" style="width:33%"></div></div><div class="dpct">&darr;LDL ~30-35%</div></div></div>'
++ '<div class="stit" style="margin-top:8px">F&aacute;rmacos no estatinas</div>'
++ '<div class="dg">'
++ '<div class="dc alt"><div class="dbg balt">NO ESTATINA &middot; SIN MIOTOXICIDAD</div>'
++ '<div class="dn">Bempeda&iacute;co</div><div class="dd">180 mg/d</div>'
++ '<div class="dt"><b>Profármaco:</b>se activa en el h&iacute;gado, pero el m&uacute;sculo esquel&eacute;tico no tiene la enzima activadora &rarr; miotoxicidad pr&aacute;cticamente nula.<br>'
++ 'CLEAR Outcomes 2023: &darr;MACE 13% en intolerantes a estatinas.<br>'
++ '<b>Precauci&oacute;n:</b>puede &uarr;&aacute;c. &uacute;rico ~1 mg/dL y provocar brotes de gota. Contraindicado eGFR &lt;30.</div>'
++ '<div class="dbar"><div class="dbarf" style="width:20%"></div></div><div class="dpct">&darr;LDL ~18-23%</div></div>'
++ '<div class="dc alt"><div class="dbg balt">COMB. ORAL &middot; SIN ESTATINA</div>'
++ '<div class="dn">Bempeda&iacute;co + Ezetimiba (comb. fija)</div><div class="dd">180/10 mg/d</div>'
++ '<div class="dt">ESC 2025 Clase I-B. Mismas precauciones que bempeda&iacute;co solo.<br>'
++ 'Alternativa eficaz cuando no se toleran estatinas a ninguna dosis.</div>'
++ '<div class="dbar"><div class="dbarf" style="width:38%"></div></div><div class="dpct">&darr;LDL ~38%</div></div>'
++ '<div class="dc alt"><div class="dbg balt">IV &middot; HF HOMOCIGOTA</div>'
++ '<div class="dn">Evinacumab</div><div class="dd">15 mg/kg IV c/4 semanas</div>'
++ '<div class="dt">Anti-ANGPTL3:<b>cambio de paradigma en HF Homocigota</b>.<br>'
++ 'Actúa sobre ANGPTL3 &rarr; no depende de que los receptores LDL funcionen (limitaci&oacute;n hist&oacute;rica). &darr;LDL ~49% incluso sin receptores funcionales.<br>'
++ 'HF homocigota refractaria. Uso hospitalario. Vigilar trombocitopenia.</div>'
++ '<div class="dbar"><div class="dbarf" style="width:49%"></div></div><div class="dpct">&darr;LDL ~49% (HFHo)</div></div>'
++ '<div class="dc alt"><div class="dbg balt">RESINA ORAL</div>'
++ '<div class="dn">Colestiramina / Colestipol</div><div class="dd">4-16 g/d (2-3 tomas)</div>'
++ '<div class="dt">&darr;LDL ~15-20%. Contraindicado TG &gt;400 mg/dL.<br>'
++ '<b>Regla de oro:</b>tomar 1 hora antes o 4 horas despu&eacute;s de cualquier otro f&aacute;rmaco (secuestran otros f&aacute;rmacos en intestino).</div>'
++ '<div class="dbar"><div class="dbarf" style="width:17%"></div></div><div class="dpct">&darr;LDL ~15-20%</div></div></div>'
++ '<div class="ib bl2"><b>Financiaci&oacute;n SNS &mdash; Bempeda&iacute;co:</b>riesgo CV alto/muy alto + intolerancia documentada (&ge;2 estatinas distintas o contraindicaci&oacute;n absoluta) + LDL no controlado. Visado de inspecci&oacute;n m&eacute;dica recomendado.</div>';
+var _altId='alt-'+Math.random().toString(36).slice(2,7);
+return '<div style="margin-top:10px">'
++'<div onclick="(function(){var b=document.getElementById(\''+_altId+'\');var a=document.getElementById(\''+_altId+'-a\');if(b.style.display===\'none\'||b.style.display===\'\'){b.style.display=\'block\';a.textContent=\'▾\';}else{b.style.display=\'none\';a.textContent=\'▸\';}})()" '
++'style="cursor:pointer;display:flex;align-items:center;gap:6px;padding:8px 12px;'
++'background:rgba(32,122,78,.06);border:1px solid rgba(32,122,78,.2);border-radius:8px;font-size:10px;font-weight:700;color:var(--ok);user-select:none;-webkit-user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent">'
++'<span>&#128101;</span>Alternativa en intolerancia a estatinas'
++'<span id="'+_altId+'-a" style="margin-left:auto;font-weight:400;color:var(--t2);font-size:10px">▸</span>'
++'</div>'
++'<div id="'+_altId+'" style="display:none;margin-top:8px">'+inner+'</div>'
++'</div>';
+}
+// =======================================================
+//  MODIFICADORES DE RIESGO — ESC/EAS 2025
+//  Cuadro 1 + Rec. Tabla 1 (aterosclerosis subclínica)
+//  Aplican en riesgo moderado o pacientes en umbral de tratamiento
+// =======================================================
+function buildModificadores(esc, lpa, lpaH) {
+var cat = esc.cat;
+var puedeSubir = (cat === 'MODERADO' || cat === 'BAJO' || cat === 'ALTO');
+var catSup = cat === 'ALTO' ? 'MUY ALTO' : cat === 'MODERADO' ? 'ALTO' : cat === 'BAJO' ? 'MODERADO' : null;
+// Contenido interno del card
+var inner = '';
+inner += '<div style="font-size:11px;color:var(--t2);margin-bottom:12px;line-height:1.5">';
+if (puedeSubir && catSup) {
+inner += 'La presencia de los siguientes factores puede implicar la<b>reclasificaci&oacute;n a una categor&iacute;a superior</b>'
++ '(de<b>' + cat + '</b>a<b>' + catSup + '</b>) especialmente en pacientes con riesgo moderado o en umbrales de tratamiento. '
++ 'Su valoraci&oacute;n debe guiar decisiones sobre objetivos de cLDL y tratamiento hipolipemiante. ';
+} else {
+inner += 'Factores modificadores de riesgo CV adicionales a los algoritmos SCORE2/SCORE2-OP. ';
+}
+inner += '<span style="color:var(--a)">Cuadro 1 y Rec. Tabla 1 &mdash; ESC/EAS 2025.</span>';
+inner += '</div>';
+// -- Sección A: Factores demográficos / clínicos (Cuadro 1) --
+inner += '<div style="margin-bottom:8px"><div style="font-size:11px;font-weight:700;color:var(--t);margin-bottom:4px">&#129489; A. FACTORES DEMOGR&Aacute;FICOS Y ENTIDADES CL&Iacute;NICAS<span style="font-weight:400;color:var(--t2)">(Cuadro 1)</span></div>';
+inner += '<table style="width:100%;font-size:11px;border-collapse:collapse">';
+inner += '<thead><tr style="border-bottom:1px solid var(--bor2)">'
++ '<th style="text-align:left;padding:3px 6px;color:var(--t2)">Factor modificador</th>'
++ '<th style="text-align:left;padding:3px 6px;color:var(--t2)">Criterio / Umbral</th>'
++ '</tr></thead><tbody>';
+var factores = [
+['Historia familiar de ECV prematura', 'Hombre< 55 a\u00f1os | Mujer < 60 a\u00f1os en familiar de 1\u00ba grado'],
+['Grupos \u00e9tnicos de riesgo elevado', 'P. ej. personas sudasiáticas (mayor riesgo per\u00edodo joven)'],
+['S\u00edntomas de estr\u00e9s / estresantes psicosociales', 'Depresi\u00f3n, ansiedad cr\u00f3nica, aislamiento social'],
+['Situaci\u00f3n social desfavorable', 'Bajo nivel socioecon\u00f3mico, desempleo prolongado'],
+['Obesidad', 'IMC \u2265 30 kg/m\u00b2 u obesidad abdominal (CC \u2265 94 cm H / \u2265 80 cm M)'],
+['Inactividad f\u00edsica', '< 150 min/semana de actividad moderada'],
+['Trastornos inmunomediados / inflamatorios cr\u00f3nicos', 'Artritis reumatoide, LES, psoriasis, EII activa, etc.'],
+['Trastornos psiqui\u00e1tricos graves', 'Esquizofrenia, trastorno bipolar'],
+['Historia de menopausia prematura', 'Menopausia < 40 a\u00f1os (natural o yatrog\u00e9nica)'],
+['Preeclampsia u otros trastornos hipertensivos del embarazo', 'Incrementan el riesgo CV a largo plazo'],
+['Infecci\u00f3n por VIH', 'Riesgo CV doble respecto a poblaci\u00f3n general. Estatina \u226540 a\u00f1os (Clase I-B REPRIEVE 2023)'],
+['S\u00edndrome de apnea obstructiva del sue\u00f1o (SAOS)', 'Especialmente SAOS moderado-grave no tratado'],
+];
+factores.forEach(function(f, i) {
+inner += '<tr style="border-bottom:1px solid var(--bor);' + (i % 2 === 0 ? 'background:var(--sur2)' : '') + '">'
++ '<td style="padding:3px 6px">' + f[0] + '</td>'
++ '<td style="padding:3px 6px;color:var(--t2)">' + f[1] + '</td>'
++ '</tr>';
+});
+inner += '</tbody></table></div>';
+// -- Sección B: Biomarcadores (Cuadro 1) --
+inner += '<div style="margin-bottom:8px"><div style="font-size:11px;font-weight:700;color:var(--t);margin-bottom:4px">&#129516; B. BIOMARCADORES<span style="font-weight:400;color:var(--t2)">(Cuadro 1)</span></div>';
+inner += '<table style="width:100%;font-size:11px;border-collapse:collapse">';
+inner += '<thead><tr style="border-bottom:1px solid var(--bor2)">'
++ '<th style="text-align:left;padding:3px 6px;color:var(--t2)">Biomarcador</th>'
++ '<th style="text-align:left;padding:3px 6px;color:var(--t2)">Umbral</th>'
++ '<th style="text-align:left;padding:3px 6px;color:var(--t2)">Implicaci\u00f3n cl\u00ednica</th>'
++ '</tr></thead><tbody>';
+inner += '<tr style="border-bottom:1px solid var(--bor)">'
++ '<td style="padding:3px 6px">PCR ultrasensible (PCR-us)</td>'
++ '<td style="padding:3px 6px">> 2 mg/l de forma persistente</td>'
++ '<td style="padding:3px 6px;color:var(--t2)">Indica inflamaci\u00f3n cr\u00f3nica; considerar reclasificaci\u00f3n \u2191</td></tr>';
+var lpaColor = lpaH ? 'var(--ext)' : 'var(--t2)';
+var lpaStatus = lpaH ? '\u26a0\ufe0f PRESENTE (> 50 mg/dL) \u2014 Reclasificar a categor\u00eda superior' : 'No detectado en este paciente';
+inner += '<tr style="' + (lpaH ? 'background:rgba(107,63,160,.06)' : '') + '">'
++ '<td style="padding:3px 6px;color:' + lpaColor + '"><b>Lipoprote\u00edna(a) [Lp(a)]</b></td>'
++ '<td style="padding:3px 6px;color:' + lpaColor + '"><b>> 50 mg/dL (\u2265 105 nmol/L)</b></td>'
++ '<td style="padding:3px 6px;color:' + lpaColor + '"><b>' + lpaStatus + '. iPCSK9 reducen Lp(a) ~25-30%. Olpasir\u00e1n en ensayo fase III.</b></td></tr>';
+inner += '</tbody></table>';
+inner += '<div style="margin-top:5px;font-size:10px;color:var(--t2)">Medir Lp(a) al menos 1 vez en la vida adulta (Rec. Tabla 4, ESC/EAS 2025 Clase I-B). No cambia significativamente con estatinas.</div>';
+inner += '</div>';
+// -- Sección C: Aterosclerosis subclínica por imagen (Rec. Tabla 1) --
+inner += '<div><div style="font-size:11px;font-weight:700;color:var(--t);margin-bottom:4px">&#128302; C. ATEROSCLEROSIS SUBCLÍNICA POR IMAGEN<span style="font-weight:400;color:var(--t2)">(Rec. Tabla 1, Clase IIa-B)</span></div>';
+inner += '<table style="width:100%;font-size:11px;border-collapse:collapse">';
+inner += '<thead><tr style="border-bottom:1px solid var(--bor2)">'
++ '<th style="text-align:left;padding:3px 6px;color:var(--t2)">Hallazgo</th>'
++ '<th style="text-align:left;padding:3px 6px;color:var(--t2)">Criterio</th>'
++ '<th style="text-align:left;padding:3px 6px;color:var(--t2)">Recomendaci\u00f3n ESC/EAS 2025</th>'
++ '</tr></thead><tbody>';
+inner += '<tr style="border-bottom:1px solid var(--bor)">'
++ '<td style="padding:3px 6px">Placa ateroscler\u00f3tica carot\u00eddea o femoral (eco)</td>'
++ '<td style="padding:3px 6px">Estenosis > 50% o placa significativa</td>'
++ '<td style="padding:3px 6px;color:var(--er)">Modificador de riesgo: considerar reclasificar \u2191 (Clase IIa-B)</td></tr>';
+inner += '<tr style="border-bottom:1px solid var(--bor)">'
++ '<td style="padding:3px 6px">Score de calcio coronario (SCC) por TC</td>'
++ '<td style="padding:3px 6px">SCC > 300 UA (o >percentil 75 para edad/sexo)</td>'
++ '<td style="padding:3px 6px;color:var(--er)">Modificador de riesgo: reclasificar \u2191 (Clase IIa-B). SCC = 0: considerar diferir tratamiento.</td></tr>';
+inner += '<tr>'
++ '<td style="padding:3px 6px">Engrosamiento \u00edntima-media carot\u00eddeo aislado (EIM)</td>'
++ '<td style="padding:3px 6px">Sin placa</td>'
++ '<td style="padding:3px 6px;color:var(--t2)">No recomendado para uso rutinario como modificador (Clase III-A)</td></tr>';
+inner += '</tbody></table></div>';
+inner += '</div>';
+// Envolver todo en un div desplegable custom (evita bug details nativo)
+var _modId = 'mod-'+Math.random().toString(36).slice(2,7);
+var h = '<div style="margin-bottom:0">';
+h += '<div onclick="(function(){var b=document.getElementById(\''+_modId+'\');var a=document.getElementById(\''+_modId+'-a\');if(b.style.display===\'none\'||b.style.display===\'\'){b.style.display=\'block\';a.textContent=\'▾\';}else{b.style.display=\'none\';a.textContent=\'▸\';}})()" ';
+h += 'style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px 14px;';
+h += 'background:rgba(212,102,10,.05);border:1px solid rgba(212,102,10,.15);border-radius:10px;font-size:11px;font-weight:700;color:var(--mo);user-select:none;-webkit-user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent">';
+h += '&#9888;&#65039; Modificadores de Riesgo &mdash; Cuadro 1, ESC/EAS 2025';
+h += '<span id="'+_modId+'-a" style="margin-left:auto;font-size:10px;font-weight:400;color:var(--t2)">▸</span></div>';
+h += '<div id="'+_modId+'" style="display:none"><div class="card" style="border-left:3px solid var(--mo);margin-top:6px">' + inner + '</div></div>';
+h += '</div>';
+return h;
+}
+function buildTG(tg, esc) {
+if (!tg || tg< 150) return '';
+var h = '<div class="dsec"><div class="ctit">Manejo de la Hipertrigliceridemia &mdash; ESC/EAS 2025</div>';
+h += '<table class="tgtbl"><thead><tr><th>TG (mg/dL)</th><th>Clasificaci&oacute;n</th><th>Objetivo</th><th>Primera medida</th></tr></thead><tbody>';
+h += '<tr><td class="nivel">150-199</td><td class="cat">L&iacute;mite-alto</td><td>Estilo de vida</td><td>Dieta, ejercicio, alcohol</td></tr>';
+h += '<tr><td class="nivel">200-499</td><td class="cat">Moderada</td><td>Control LDL primero</td><td>Estilo de vida + f&aacute;rmacos si RCV elevado</td></tr>';
+h += '<tr><td class="nivel">500-999</td><td class="cat">Grave</td><td>Reducir TG urgente</td><td>F&aacute;rmacos + restricci&oacute;n grasas inmediata</td></tr>';
+h += '<tr><td class="nivel">&ge;1000</td><td class="cat" style="color:var(--er)">Muy grave / Quilomicronemia</td><td>Prevenir pancreatitis</td><td>Ingreso hospitalario, dieta 0 grasas</td></tr>';
+h += '</tbody></table>';
+if (tg >= 150 && tg< 500 && (esc.cat === 'BAJO' || esc.cat === 'MODERADO')) {
+h += '<div class="ib gn"><b>TG 150-499 mg/dL con RCV BAJO o MODERADO:</b><br>'
++ 'Prioridad: cambios de estilo de vida (Clase I-A):<br>'
++ '&bull; Restricci&oacute;n de alcohol (&lt;10 g/d o abstinencia) y az&uacute;cares simples<br>'
++ '&bull; P&eacute;rdida de peso (&ge;5-10% si sobrepeso): &darr;TG 20-30%<br>'
++ '&bull; Ejercicio aer&oacute;bico &ge;150 min/semana<br>'
++ '&bull; Dieta mediterr&aacute;nea. &Aacute;cidos grasos omega-3 naturales.<br>'
++ '<b>Farmacoterapia:</b>solo si TG persiste &ge;500 mg/dL o pancreatitis previa. No se recomienda tratamiento farmacol&oacute;gico rutinario de TG 200-499 en prevenci&oacute;n primaria con riesgo bajo/moderado.</div>';
+}
+if (tg >= 135 && tg< 500 && (esc.cat === 'ALTO' || esc.cat === 'MUY ALTO' || esc.cat === 'EXTREMO')) {
+h += '<div class="ib am"><b>TG 135-499 mg/dL con RCV ALTO o MUY ALTO:</b><br>'
++ 'Tras control &oacute;ptimo de LDL-C con estatina, considerar icosapento de etilo (ESC 2025 Clase IIa-B):<br>'
++ '&bull; 2 g/12 h (4 g/d). REDUCE-IT: &darr;MACE 25%, &darr;muerte CV 20%.<br>'
++ '&bull; Contraindicaciones: FA activa no controlada, alergia a pescado.<br>'
++ '&bull; Precauci&oacute;n: &uarr; riesgo FA (vigilar). Interacci&oacute;n con anticoagulantes.</div>';
+}
+if (tg >= 500) {
+h += '<div class="ib rd"><b>TG &ge;500 mg/dL &mdash; RIESGO DE PANCREATITIS:</b><br>'
++ 'Tratamiento farmacol&oacute;gico prioritario independientemente del RCV.<br>'
++ 'Restricci&oacute;n estricta de grasas totales y supresión completa de alcohol.</div>';
+}
+h += '<div class="stit">Fibratos</div>';
+h += '<div class="dg">'
++ '<div class="dc p1"><div class="dbg bm">FIBRATO &middot; 1&ordf; ELECCI&Oacute;N</div>'
++ '<div class="dn">Fenofibrato</div><div class="dd">145-160 mg/d &middot; Micronizado: 200 mg/d</div>'
++ '<div class="dt"><b>Indicaciones:</b>TG &ge;500, TG &ge;200 con RCV alto. Combinable con estatinas (menor riesgo que gemfibrozilo).<br>'
++ '<b>Contraindicaciones:</b>eGFR &lt;30, hepatopat&iacute;a grave, c&aacute;lculo biliar, lactancia.<br>'
++ '<b>Precauci&oacute;n:</b>Reducir dosis 50% si eGFR 30-59. &uarr;Leve creatinina (efecto tubular reversible).</div>'
++ '<div class="dbar"><div class="dbarf" style="width:50%"></div></div><div class="dpct">&darr;TG 40-55% &middot; &uarr;HDL 5-15%</div></div>'
++ '<div class="dc p1"><div class="dbg bm">FIBRATO &middot; ALTERNATIVA</div>'
++ '<div class="dn">Bezafibrato</div><div class="dd">400 mg/d (retard)</div>'
++ '<div class="dt"><b>Indicaciones:</b>TG &ge;500 o TG elevado + HDL bajo + RCV alto.<br>'
++ '<b>Contraindicaciones:</b>eGFR &lt;30, hepatopat&iacute;a grave, c&aacute;lculo biliar.<br>'
++ '<b>Precauci&oacute;n:</b>ajustar dosis en ERC; mayor riesgo miol&oacute;tico que fenofibrato con estatinas.</div>'
++ '<div class="dbar"><div class="dbarf" style="width:48%"></div></div><div class="dpct">&darr;TG 40-55% &middot; &uarr;HDL 5-15%</div></div></div>';
+h += '<div class="stit">Omega-3</div>';
+h += '<div class="dg">'
++ '<div class="dc p2"><div class="dbg bp2">EPA PURO &middot; EVIDENCIA CV</div>'
++ '<div class="dn">Icosapento de etilo (EPA puro)</div><div class="dd">2 g/12 h (4 g/d)</div>'
++ '<div class="dt"><b>ESC 2025 Clase IIa-B:</b>TG 135-499 + RCV alto/muy alto con estatina &oacute;ptima.<br>'
++ '<b>Contraindicaciones:</b>alergia a mariscos/pescado, FA activa no controlada.<br>'
++ '<b>Precauci&oacute;n:</b>&uarr; riesgo FA. Interacci&oacute;n con anticoagulantes (&uarr;efecto).</div>'
++ '<div class="dbar"><div class="dbarf" style="width:30%"></div></div><div class="dpct">&darr;TG 20-30% &middot; &darr;MACE 25% (REDUCE-IT)</div></div>'
++ '<div class="dc alt"><div class="dbg balt">OMEGA-3 MIXTO (EPA+DHA)</div>'
++ '<div class="dn">Omega-3 gen&eacute;rico (EPA+DHA)</div><div class="dd">4 g/d</div>'
++ '<div class="dt"><b>Uso:</b>reducci&oacute;n de TG.<b>Sin evidencia robusta de reducci&oacute;n CV</b>(distinto al EPA puro).<br>'
++ 'Contraindicaciones y precauciones similares al EPA puro.</div>'
++ '<div class="dbar"><div class="dbarf" style="width:25%"></div></div><div class="dpct">&darr;TG 25-30% &middot; Sin evidencia CV robusta</div></div></div>';
+if (tg >= 750) {
+h += '<div class="ib pu"><b>Quilomicronemia familiar (TG &ge;750):</b><br>'
++ 'Considerar volanesorsen (ESC 2025 Clase IIa-B): 285 mg sc/semana. &darr;TG ~80%.<br>'
++ 'Vigilar trombocitopenia. Derivar a unidad de l&iacute;pidos para evaluaci&oacute;n gen&eacute;tica.</div>';
+}
+h += '<div class="ib gr"><b>Gemfibrozilo:<span style="color:var(--er)">contraindicado con todas las estatinas</span></b>(inhibidor OATP1B1 potente &rarr; riesgo rabdomiol&oacute;lisis). Usar siempre fenofibrato o bezafibrato si se necesita combinar con estatina.</div>';
+h += '</div>';
+return h;
+}
+// =======================================================
+//  FUNCIÓN PRINCIPAL
+// =======================================================
+function _calcularReal() {
+hideError();
+var age = gi('age'), sex = gv('sex'), reg = gv('region');
+var sbp = gi('sbp'), smk = parseInt(gv('smoking'));
+var sp = gv('special'), dm = gv('diabetes'), ldlv = gi('ldl');
+var tg = gi('tg'), lpa = gi('lpa'), intol = gv('intol');
+var hba1c = gf('hba1c') || 7.0, diagAge = gi('dm_diag_age') || Math.max(18, age - 10);
+var egfr_dm = gi('egfr_dm') || 90, egfr = gi('egfr') || 90;
+var malb = gv('malb'), organ = gv('organ');
+// Leer colesterol en mg/dL y convertir a mmol/L para los algoritmos SCORE2
+var tc_mg = gf('tc'), hdl_mg = gf('hdl');
+var tc = mgToMmol(tc_mg), hdl = mgToMmol(hdl_mg);
+if (!age || !sbp || !tc_mg || !hdl_mg || !ldlv) {
+showError('Completa los campos obligatorios (*): Edad, PAS, CT, HDL y LDL-C.'); return;
+}
+if (tc_mg < 100 || tc_mg > 580) { showError('Colesterol total fuera de rango (100-580 mg/dL). Comprueba el valor.'); return; }
+if (hdl_mg < 15 || hdl_mg > 155) { showError('HDL-C fuera de rango (15-155 mg/dL). Comprueba el valor.'); return; }
+// -- Detección automática ERC por eGFR introducido (Tabla 3 ESC/EAS 2025) --
+// Si el médico introduce un eGFR < 60 pero NO ha marcado la condición clínica
+// especial de ERC en el desplegable, se activa automáticamente la categoría
+// de riesgo correspondiente según la Tabla 3.
+// Las condiciones de mayor prioridad (ASCVD, HF) prevalecen siempre.
+var ercAuto = false;
+var highPrioritySp = ['ascvd','ascvd2','fhascvd','fh','ckd34','ckd3a'];
+// Usamos el eGFR del campo general (no el de DM, que es específico del score)
+// eGFR real introducido: gi('egfr') devuelve 0 si vacío, no 90
+var egfrReal = gi('egfr');  // 0 si no introducido
+if (egfrReal > 0 && highPrioritySp.indexOf(sp) === -1) {
+  if (egfrReal < 30) {
+    // ERC grave (Estadio 4-5, TFGe < 30) → MUY ALTO (Tabla 3 ESC/EAS 2025)
+    sp = 'ckd34';
+    ercAuto = true;
+  } else if (egfrReal < 60) {
+    // ERC moderada (Estadio 3, TFGe 30-59) → ALTO (Tabla 3 ESC/EAS 2025)
+    // Solo si no hay ya condición que dé MUY ALTO o EXTREMO
+    if (sp === 'none' || sp === '' || sp === 'ldl190') {
+      sp = 'ckd3a';
+      ercAuto = true;
+    }
+  }
+}
+// Si egfr no fue introducido en el campo general, usar el egfr normal para el resto
+if (!egfrReal) egfr = 90;
+
+// -- Detección automática LDL ≥190 mg/dL (Tabla 3 ESC/EAS 2025) --
+// Si no hay condición especial seleccionada y el LDL introducido es ≥190,
+// se activa automáticamente la clasificación de RIESGO ALTO.
+// Las condiciones de mayor prioridad (ASCVD, HF, ERC) prevalecen si ya están seleccionadas.
+var ldl190Auto = false;
+if (ldlv >= 190 && highPrioritySp.indexOf(sp) === -1) {
+  sp = 'ldl190';
+  ldl190Auto = true;
+}
+// Selección automática de algoritmo — idéntica a Cardioteca / ESC 2021-2023
+var isOP = age >= 70;
+var isDM2 = (dm === 'dm2') && !isOP;   // SCORE2-DM: solo DM2, 40-69 años
+var fs, slbl;
+if (isOP) {
+// SCORE2-OP: ≥70 años (con o sin DM2)
+fs = score2op(age, sex, sbp, tc, hdl, smk, reg);
+slbl = 'SCORE2-OP';
+} else if (isDM2) {
+// SCORE2-Diabetes: DM tipo 2, 40-69 años
+if (diagAge >= age) diagAge = Math.max(18, age - 1);
+fs = score2dm(age, sex, sbp, tc, hdl, smk, hba1c, egfr_dm, diagAge, reg);
+slbl = 'SCORE2-Diabetes';
+} else {
+// SCORE2: 40-69 años sin DM (o DM1 que usa SCORE2 base)
+fs = score2(age, sex, sbp, tc, hdl, smk, reg);
+slbl = 'SCORE2';
+}
+var dmd = modDM(dm, hba1c, egfr_dm, diagAge, age, malb, organ);
+var fsReal = fs; // valor real calculado — se muestra siempre al usuario
+// getESC maneja directamente dmd.vhr→MuyAlto y dmd.ahr→Alto.
+// El ajuste de fs aquí es solo respaldo interno; nunca se muestra al usuario.
+if (dmd.vhr && fs< 20) fs = 20;
+else if (dmd.ahr && fs < 10) fs = 10;
+var esc = getESC(fs, age, sp, dm, dmd);
+var tx = getTx(ldlv, esc, intol);
+var lpaH = lpa >= 50;
+var rn = { low: 'Bajo (Espa\u00f1a)', moderate: 'Moderado', high: 'Alto', 'very-high': 'Muy alto' };
+// ======================================================
+// Umbral inicio farmacoterapia — Rec. Tabla 1, ESC/EAS 2025
+// CLASE I-B (SE RECOMIENDA, prevención primaria):
+//   EXTREMO:   LDL ≥ 40 mg/dL (objetivo<40; siempre fármaco sobre esa cifra)
+//   MUY ALTO:  LDL ≥ 70 mg/dL (1,8 mmol/L)
+//   ALTO:      LDL ≥ 100 mg/dL (2,6 mmol/L)
+// CLASE IIa-A (SE DEBE CONSIDERAR, prevención primaria):
+//   MUY ALTO:  LDL 55-69 mg/dL (1,4-1,8 mmol/L)
+//   ALTO:      LDL 70-99 mg/dL (1,8-2,6 mmol/L)
+//   MODERADO:  LDL ≥ 100 mg/dL (2,6 mmol/L)
+//   BAJO:      LDL ≥ 116 mg/dL (3,0 mmol/L)
+// ======================================================
+var indI = false, indIIa = false;
+if (esc.cat === 'EXTREMO') {
+// Objetivo <40 mg/dL. I-B siempre que LDL ≥ 40
+if (ldlv >= 40) indI = true;
+} else if (esc.cat === 'MUY ALTO') {
+if (ldlv >= 70)      indI   = true;
+else if (ldlv >= 55) indIIa = true;
+} else if (esc.cat === 'ALTO') {
+if (ldlv >= 100)    indI   = true;
+else if (ldlv >= 70) indIIa = true;
+} else if (esc.cat === 'MODERADO') {
+if (ldlv >= 100) indIIa = true;
+} else if (esc.cat === 'BAJO') {
+if (ldlv >= 116) indIIa = true;
+}
+// Solo mostrar el bloque thrH si hay indicación activa O si la categoría
+// tiene umbral definido Y el LDL está por encima de él (evitar "bajo umbral"
+// en MODERADO/BAJO cuando el algoritmo directamente no se muestra)
+var mostrarThr = (indI || indIIa);
+var thrH = '';
+if (mostrarThr) {
+var claseColor = indI ? 'var(--er)' : 'var(--hi)';
+var claseLabel = indI
+? 'CLASE I-B \u2014 TRATAMIENTO FARMACOL\u00d3GICO RECOMENDADO'
+: 'CLASE IIa-A \u2014 CONSIDERAR TRATAMIENTO FARMACOL\u00d3GICO';
+var claseNote = indI
+? 'Junto con la optimizaci\u00f3n de medidas no farmacol\u00f3gicas (Rec. Tabla 1, ESC/EAS 2025).'
+: 'Junto con la optimizaci\u00f3n de medidas no farmacol\u00f3gicas. Decisi\u00f3n compartida con el paciente.';
+thrH = '<div class="thr"><b>Umbral de intervenci\u00f3n farmacol\u00f3gica \u2014 Rec. Tabla 1, ESC/EAS 2025</b><br>'
++ 'LDL actual:<b style="color:' + claseColor + '">' + ldlv + ' mg/dL</b>'
++ ' \u2192<b style="color:' + claseColor + '">' + claseLabel + '</b>'
++ '<br><span style="font-size:10px;color:var(--t2)">' + claseNote + '</span>'
++ '</div>';
+}
+// Objetivos — ESC/EAS 2025 Tabla 5
+// mmol/L equivalentes: 55→1.4 | 70→1.8 | 100→2.6 | 116→3.0
+var ldlMmol = esc.ldl === 55 ? '1,4' : esc.ldl === 70 ? '1,8' : esc.ldl === 100 ? '2,6' : esc.ldl === 40 ? '1,0' : '3,0';
+var needsRed = (esc.cat === 'EXTREMO' || esc.cat === 'MUY ALTO' || esc.cat === 'ALTO');
+var gH = '<div class="tgrid">'
++ '<div class="tv"><div class="tvl">LDL-C OBJETIVO</div><div class="tvn">&lt;' + esc.ldl + '</div><div class="tvs">mg/dL (' + ldlMmol + ' mmol/L)</div></div>'
++ '<div class="tv"><div class="tvl">NO-HDL OBJETIVO</div><div class="tvn">&lt;' + esc.nh + '</div><div class="tvs">mg/dL</div></div>'
++ '<div class="tv"><div class="tvl">ApoB OBJETIVO</div><div class="tvn">&lt;' + esc.apb + '</div><div class="tvs">mg/dL</div></div>'
++ (needsRed ? '<div class="tv" style="border-color:var(--er)"><div class="tvl" style="color:var(--er)">REDUCCI\u00d3N M\u00cdNIMA</div><div class="tvn" style="color:var(--er)">\u226550%</div><div class="tvs">del LDL basal<b>Y</b>alcanzar objetivo</div></div>' : '')
++ '</div>'
++ '<div style="font-size:10px;color:var(--t2);margin-top:6px;padding:6px 8px;background:var(--sur2);border-radius:6px;line-height:1.7">'
++ '<b>Resumen de objetivos LDL-C seg\u00fan categor\u00eda (ESC/EAS 2025 Tabla 5):</b><br>'
++ '\uD83D\uDFE3<b>EXTREMO:</b>&lt;40 mg/dL (1,0 mmol/L)<b>Y</b>\u226550% de reducci\u00f3n &nbsp;|&nbsp; '
++ '\uD83D\uDD34<b>MUY ALTO:</b>&lt;55 mg/dL (1,4 mmol/L)<b>Y</b>\u226550% &nbsp;|&nbsp; '
++ '\uD83D\uDFE0<b>ALTO:</b>&lt;70 mg/dL (1,8 mmol/L)<b>Y</b>\u226550% &nbsp;|&nbsp; '
++ '\uD83D\uDFE1<b>MODERADO:</b>&lt;100 mg/dL (2,6 mmol/L) &nbsp;|&nbsp; '
++ '\uD83D\uDFE2<b>BAJO:</b>&lt;116 mg/dL (3,0 mmol/L)'
++ '</div>';
+// Barra LDL
+var tgt = esc.ldl;
+var lp2 = Math.min(100, (ldlv / 280) * 100), tp2 = Math.min(100, (tgt / 280) * 100);
+var nrNeededDisp = ldlv > tgt ? Math.round(((ldlv - tgt) / ldlv) * 100) : 0;
+var minrDisp = esc.red || 0;
+var np = Math.max(minrDisp, nrNeededDisp); // respeta reducción mínima obligatoria (ej. ≥50% en ALTO/MUY ALTO)
+var npNote = (minrDisp > 0 && nrNeededDisp< minrDisp)
+? ' <span style="font-size:10px;color:var(--t2)">(reducci\u00f3n m\u00ednima obligatoria \u226550% seg\u00fan ESC/EAS 2025)</span>'
+: '';
+var projH = '<span>Reducci\u00f3n necesaria:<b style="color:' + (np >= 50 ? 'var(--er)' : np >= 30 ? 'var(--hi)' : 'var(--ok)') + '">' + np + '%</b>' + npNote + '</span>';
+if (tx.noSt) {
+// Sin estatinas: proyecciones basadas en EZE, AB, EZE+AB, iPCSK9
+var pezPct  = ldlv > 0 ? Math.round((ldlv - tx.p.ez)  / ldlv * 100) : 0;
+var peabPct = ldlv > 0 ? Math.round((ldlv - tx.p.eab) / ldlv * 100) : 0;
+var ppcPct  = ldlv > 0 ? Math.round((ldlv - tx.p.pc)  / ldlv * 100) : 0;
+projH += '<span>EZE sola:<b style="color:' + (tx.p.ez <= tgt ? 'var(--ok)' : 'var(--hi)') + '">~' + tx.p.ez + ' mg/dL</b><span style="font-size:10px;color:var(--t2)">(\u2193' + pezPct + '%)</span></span>';
+projH += '<span>EZE + Bempeda\u00edco:<b style="color:' + (tx.p.eab <= tgt ? 'var(--ok)' : 'var(--hi)') + '">~' + tx.p.eab + ' mg/dL</b><span style="font-size:10px;color:var(--t2)">(\u2193' + peabPct + '%)</span></span>';
+if (tx.s3) projH += '<span>+ iPCSK9:<b style="color:' + (tx.p.pc <= tgt ? 'var(--ok)' : 'var(--hi)') + '">~' + tx.p.pc + ' mg/dL</b><span style="font-size:10px;color:var(--t2)">(\u2193' + ppcPct + '%)</span></span>';
+} else {
+if (tx.pstat !== undefined) {
+var pstatPct = ldlv > 0 ? Math.round((ldlv - tx.pstat) / ldlv * 100) : 0;
+projH += '<span>Con estatina \u00f3ptima:<b style="color:' + (tx.pstat <= tgt ? 'var(--ok)' : 'var(--hi)') + '">~' + tx.pstat + ' mg/dL</b><span style="font-size:10px;color:var(--t2)">(\u2193' + pstatPct + '%)</span></span>';
+}
+if (tx.s2 && tx.peze !== undefined) {
+var pezePct = ldlv > 0 ? Math.round((ldlv - tx.peze) / ldlv * 100) : 0;
+projH += '<span>+ ezetimiba:<b style="color:' + (tx.peze <= tgt ? 'var(--ok)' : 'var(--hi)') + '">~' + tx.peze + ' mg/dL</b><span style="font-size:10px;color:var(--t2)">(\u2193' + pezePct + '%)</span></span>';
+}
+if (tx.s3 && tx.p) {
+var ppscp = ldlv > 0 ? Math.round((ldlv - tx.p.hsep) / ldlv * 100) : 0;
+projH += '<span>+ iPCSK9:<b style="color:var(--ok)">~' + tx.p.hsep + ' mg/dL</b><span style="font-size:10px;color:var(--t2)">(\u2193' + ppscp + '%)</span></span>';
+}
+}
+// ALERTA PASO 2 (ANTES del algoritmo de tratamiento)
+var alertP2 = '';
+if (tx.s2 && !tx.noSt) {
+var esExt = (esc.cat === 'EXTREMO');
+alertP2 = '<div class="alert-p2' + (esExt ? ' ext' : '') + '"><div class="ap2-tit">';
+alertP2 += (esExt ? '\uD83D\uDFE3' : '&#9888;&#65039;') + ' ';
+alertP2 += (esExt ? 'TRATAMIENTO INICIAL CON DOBLE TERAPIA (PASO 1 + PASO 2 desde el inicio)' : 'ATENCI\u00d3N: PASO 1 INSUFICIENTE &mdash; INICIAR CON DOBLE TERAPIA');
+alertP2 += '</div>';
+if (esExt) {
+alertP2 += 'Riesgo EXTREMO: ESC/EAS 2025 \u2014<b>estatina alta intensidad + ezetimiba desde el inicio</b>. Si LDL &gt;40 mg/dL a 4-6 sem, a\u00f1adir iPCSK9.';
+} else {
+alertP2 += 'Estatina sola estima LDL ~<b>' + tx.pstat + ' mg/dL</b>(objetivo &lt;' + tgt + ' mg/dL). Iniciar<b>estatina + ezetimiba</b>directamente (ESC/EAS 2025)';
+}
+alertP2 += '</div>';
+}
+var lpaNote = '';
+if (lpaH && (esc.cat === 'MODERADO' || esc.cat === 'BAJO')) lpaNote = '<div class="ib pu" style="margin-top:8px">Lp(a) \u226550 mg/dL: considerar reclasificar a categor\u00eda ' + (esc.cat === 'MODERADO' ? 'ALTO' : 'MODERADO') + '. Optimizar LDL-C al m\u00e1ximo.</div>';
+document.getElementById('ph').style.display = 'none';
+var R = document.getElementById('res');
+R.style.display = 'block';
+var out = '';
+// == RECORDATORIO CONTROL GLOBAL DE FRCV ==================
+// Siempre visible, independiente del score. ESC 2023 DM + ESC/EAS 2025.
+out += '<div class="card" style="border-left:4px solid var(--a);background:rgba(26,111,142,.04);margin-bottom:0">'
++ '<div class="ctit" style="color:var(--a)">&#9889; CONTROL GLOBAL DE FACTORES DE RIESGO CARDIOVASCULAR</div>'
++ '<div style="font-size:10px;color:var(--t3);margin-bottom:10px">ESC/EAS 2025 &bull; Gu\u00eda ESC 2023 ECV en Diabetes &bull; ESC 2021 Prevenci\u00f3n CV</div>'
+// Tabaco
++ '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin-bottom:4px">'
++ '<div style="padding:8px 10px;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);border-radius:8px">'
++ '<div style="font-size:11px;font-weight:700;color:var(--er);margin-bottom:4px">&#128683; TABACO</div>'
++ '<div style="font-size:10px;color:var(--t2);line-height:1.6">'
++ 'El abandono del tabaco es la intervenci\u00f3n \u00fanica de mayor impacto en RCV. '
++ 'Reduce la mortalidad CV un<b>36%</b>en los primeros 5 a\u00f1os. '
++ 'Ofrecer consejo breve en cada visita + tratamiento farmacol\u00f3gico (vareniclina / TSN). '
++ '<b>No existe nivel seguro de consumo.</b>'
++ '</div></div>'
+// HTA
++ '<div style="padding:8px 10px;background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.2);border-radius:8px">'
++ '<div style="font-size:11px;font-weight:700;color:#3b82f6;margin-bottom:4px">&#129657; HIPERTENSI\u00d3N ARTERIAL</div>'
++ '<div style="font-size:10px;color:var(--t2);line-height:1.6">'
++ '<b>Objetivo general:</b>TAS &lt;130 mmHg si tolerada (ESC 2024 HTA).<br>'
++ '<b>Diabetes:</b>&le;130/80 mmHg. &nbsp;<b>ERC + albuminuria:</b>&le;120 mmHg TAS.<br>'
++ 'Preferir IECA/ARA-II en DM, ERC o proteinuria. Evitar combinaci\u00f3n IECA + ARA-II.<br>'
++ '<b>El control tensional reduce ictus ~40%, cardiopat\u00eda isqu\u00e9mica ~25%.</b>'
++ '</div></div>'
+// Diabetes
++ '<div style="padding:8px 10px;background:rgba(32,122,78,.05);border:1px solid rgba(34,197,94,.2);border-radius:8px">'
++ '<div style="font-size:11px;font-weight:700;color:var(--ok);margin-bottom:4px">&#129530; DIABETES MELLITUS</div>'
++ '<div style="font-size:10px;color:var(--t2);line-height:1.6">'
++ '<b>Objetivo HbA1c:</b>&lt;7% general &middot; &lt;6,5% si se consigue sin hipoglucemia.<br>'
++ '<b class="warn">Priorizar antidiab\u00e9ticos con beneficio CV demostrado (Gu\u00eda ESC 2023):</b><br>'
++ '&bull;<b>iSGLT2</b>(empagliflozin, canagliflozin, dapagliflozin): &darr;MACE, &darr;hospitalizaci\u00f3n por IC, &darr;progresi\u00f3n ERC.<b>Clase I</b>en ECVA, IC y ERC.<br>'
++ '&bull;<b>arGLP-1</b>(semaglutida sc, liraglutida, dulaglutida): &darr;MACE, &darr;peso, &darr;PA.<b>Clase I</b>en ECVA establecida.<br>'
++ '&bull; Beneficio CV<b>independiente del control gluc\u00e9mico</b>y del tratamiento previo.<br>'
++ '&bull; Metformina: clase IIa (beneficio CV sugerido, no probado en ECA de outcome).<br>'
++ '<span style="color:var(--t3)">Evitar: sulfonilúreas de acción corta, saxagliptina (riesgo IC). Pioglitazona: datos conflictivos.</span>'
++ '</div></div>'
+// Antiagregación / AAS
++ '<div style="padding:8px 10px;background:rgba(168,85,247,.07);border:1px solid rgba(107,63,160,.15);border-radius:8px">'
++ '<div style="font-size:11px;font-weight:700;color:var(--ext);margin-bottom:4px">&#128138; ANTIAGREGACI\u00d3N / OTROS</div>'
++ '<div style="font-size:10px;color:var(--t2);line-height:1.6">'
++ '<b>Prevenci\u00f3n secundaria:</b>AAS 75-100 mg/d\u00eda + inhibidor bomba de protones. Clopidogrel si intolerancia AAS.<br>'
++ '<b>Prevenci\u00f3n primaria:</b>no recomendada de forma rutinaria por exceso de sangrado.<br>'
++ '<b>Peso:</b>reducci\u00f3n &ge;5-10% &darr;LDL, &darr;TG, &darr;PA. arGLP-1 o iSGLT2 si obesidad + DM.<br>'
++ '<b>Actividad f\u00edsica:</b>&ge;150 min/semana aerobico moderado. Reduce mortalidad CV ~35%.'
++ '</div></div>'
++ '</div>' // end grid
++ '<div style="margin-top:8px;font-size:9px;padding:5px 8px;background:rgba(26,111,142,.05);border-radius:6px;color:var(--t2);line-height:1.5">'
++ '<b>&#128218; Fuentes:</b>'
++ 'Gu\u00eda ESC 2023 ECV en Diabetes (EHJ 2023;44:4043\u20134140) &bull; '
++ 'ESC/EAS 2025 Dislipemias (EHJ 2025;46:4359\u20134378) &bull; '
++ 'ESC 2024 Hipertensi\u00f3n Arterial &bull; '
++ 'ESC 2021 Prevenci\u00f3n Cardiovascular &bull; '
++ 'EMPA-REG OUTCOME &bull; CANVAS &bull; DAPA-HF &bull; LEADER &bull; SUSTAIN-6 &bull; REWIND'
++ '</div></div>';
+var _thrVHNote = age < 50 ? 7.5 : age < 70 ? 10 : 15;
+var scoreOverrideNote = '';
+if (ercAuto) {
+var ercCat = egfrReal < 30 ? 'MUY ALTO' : 'ALTO';
+var ercDesc = egfrReal < 30
+  ? 'ERC grave (TFGe < 30 mL/min/1,73 m\u00b2) \u2014 Tabla 3 ESC/EAS 2025'
+  : 'ERC moderada (TFGe 30\u201359 mL/min/1,73 m\u00b2) \u2014 Tabla 3 ESC/EAS 2025';
+scoreOverrideNote = '<div style="margin-top:4px;font-size:10px;background:rgba(192,57,43,.09);border-left:2px solid var(--er);padding:4px 8px;border-radius:4px;color:var(--er)">'
++ '\u2139\uFE0F <b>eGFR ' + egfrReal + ' mL/min detectado autom\u00e1ticamente.</b> '
++ 'Clasificaci\u00f3n ajustada a <b>RIESGO ' + ercCat + '</b> por ' + ercDesc + '. '
++ 'La condici\u00f3n cl\u00ednica especial (ERC) prioriza sobre el score num\u00e9rico seg\u00fan la Tabla 3.'
++ '</div>';
+} else if (ldl190Auto) {
+scoreOverrideNote = '<div style="margin-top:4px;font-size:10px;background:rgba(212,102,10,.10);border-left:2px solid var(--hi);padding:4px 6px;border-radius:4px;color:var(--hi)">'
++ '&#9432; <b>LDL-C ' + ldlv + ' mg/dL (\u2265190)</b> detectado autom\u00e1ticamente. '
++ 'Clasificaci\u00f3n: <b>RIESGO ALTO</b> por factor de riesgo individual marcadamente elevado \u2014 Tabla 3 ESC/EAS 2025. '
++ '<b>Descartar Hipercolesterolemia Familiar</b> (criterios Dutch Lipid Clinic Network o Simon Broome).'
++ '</div>';
+} else if (dmd.ahr && fsReal >= _thrVHNote) {
+// Score numérico alcanza MUY ALTO y además hay criterio ALTO por Tabla 3 — ambos confluyen en MUY ALTO
+var ahrReason2 = dmd.notes.filter(function(n){ return n.indexOf('\u2192') > -1; }).join('; ')
+|| 'DM con criterio Tabla 3 ESC/EAS 2025';
+scoreOverrideNote = '<div style="margin-top:4px;font-size:10px;background:rgba(192,57,43,.08);border-left:2px solid var(--er);padding:4px 6px;border-radius:4px;color:var(--er)">'
++ '&#9432; SCORE2-Diabetes calculado: <b>' + fsReal.toFixed(1) + '%</b> (\u2265' + _thrVHNote + '%, umbral MUY ALTO para edad 50\u201369 a\u00f1os). '
++ 'Adem\u00e1s, criterio cualitativo Tabla 3: <b>' + ahrReason2 + '</b>. '
++ 'Ambas v\u00edas convergen en <b>RIESGO MUY ALTO</b>.'
++ '</div>';
+} else if (dmd.ahr && fsReal < _thrVHNote) {
+// Score no llega a MUY ALTO — la clasificación la eleva la Tabla 3 a ALTO
+var ahrReason = dmd.notes.filter(function(n){ return n.indexOf('\u2192') >-1; }).join('; ')
+|| 'DM sin da\u00f1o de \u00f3rganos diana con \u226510 a\u00f1os de evoluci\u00f3n u otro factor adicional de riesgo';
+scoreOverrideNote = '<div style="margin-top:4px;font-size:10px;background:rgba(212,102,10,.10);border-left:2px solid var(--hi);padding:4px 6px;border-radius:4px;color:var(--hi)">'
++ '&#9432; SCORE2-Diabetes calculado: <b>' + fsReal.toFixed(1) + '%</b> (banda num\u00e9rica: Moderado). '
++ 'Clasificaci\u00f3n final: <b>ALTO</b> por criterio expl\u00edcito de la Tabla 3 ESC/EAS 2025: '
++ '<b>' + ahrReason + '</b>. '
++ 'El c\u00e1lculo del score sirve para estimar el riesgo, pero la categor\u00eda final viene determinada por la Tabla 3.'
++ '</div>';
+} else if (dmd.vhr && fsReal < 20) {
+scoreOverrideNote = '<div style="margin-top:4px;font-size:10px;background:rgba(192,57,43,.08);border-left:2px solid var(--er);padding:4px 6px;border-radius:4px;color:var(--er)">'
++ '&#9432; SCORE2-Diabetes calculado: <b>' + fsReal.toFixed(1) + '%</b>. '
++ 'Clasificaci\u00f3n final: <b>MUY ALTO</b> por criterio de la Tabla 3 (da\u00f1o de \u00f3rganos diana / ERC grave en DM).'
++ '</div>';
+}
+out += '<div class="rcvc" style="--rc:' + esc.col + '">'
++ '<div class="rcvtop"><div>'
++ '<div style="font-size:10px;color:var(--t3);font-family:\'Courier New\',monospace;margin-bottom:3px">' + slbl + ' \u00b7 Regi\u00f3n ' + rn[reg] + '</div>'
++ '<div class="snum">' + fsReal.toFixed(1) + '<sup>%</sup></div>'
++ '<div class="rnam">' + esc.em + ' Riesgo ' + esc.cat + '</div>'
++ '<div class="rdesc">' + esc.desc + (dmd.notes.length ? '<br><span style="color:var(--mo)">DM: ' + dmd.notes.join(' \u00b7 ') + '</span>' : '') + '</div>'
++ scoreOverrideNote
++ '</div><div style="text-align:right">'
++ '<div class="rpill" style="color:' + esc.col + '">' + esc.cat + '</div>'
++ '<div class="chips" style="justify-content:flex-end">'
++ '<span class="chip"><span class="dot" style="background:' + esc.col + '"></span>' + slbl + '</span>'
++ (lpaH ? '<span class="chip"><span class="dot" style="background:var(--ext)"></span>Lp(a) \u226550 mg/dL</span>' : '')
++ '</div></div></div>';
+// Nota método cálculo
+out += '<div style="margin-top:10px;font-size:9px;color:var(--t3);font-family:\'Courier New\',monospace;line-height:1.6">'
++ 'Algoritmo: ' + slbl + ' (ESC/Cardioteca) \u00b7 CT=' + tc_mg + ' mg/dL \u00b7 HDL=' + hdl_mg + ' mg/dL \u00b7 PAS=' + sbp + ' mmHg'
++ (smk ? ' \u00b7 Fumador' : ' \u00b7 No fumador')
++ (isDM2 ? ' \u00b7 HbA1c=' + hba1c + '% \u00b7 eGFR=' + egfr_dm + ' \u00b7 Diag. DM: ' + diagAge + 'a \u00b7 Score calculado: ' + fsReal.toFixed(1) + '%' : '')
++ '</div>';
+out += '</div>';
+// ② Modificadores de Riesgo (reclasificadores ESC 2025)
+out += buildModificadores(esc, lpa, lpaH);
+// ③ Objetivos
+// En BAJO y MODERADO: thrH con texto específico de la guía
+var thrHFinal = thrH;
+if ((esc.cat === 'BAJO' || esc.cat === 'MODERADO') && (indI || indIIa)) {
+thrHFinal = '<div class="thr"><b>Umbral de intervenci\u00f3n farmacol\u00f3gica \u2014 Rec. Tabla 1, ESC/EAS 2025</b><br>'
++ 'LDL actual:<b style="color:var(--hi)">' + ldlv + ' mg/dL</b>'
++ ' \u2192<b style="color:var(--hi)">CLASE IIa-A \u2014 CONSIDERAR TRATAMIENTO FARMACOL\u00d3GICO</b>'
++ '<br><span style="font-size:10px;color:var(--t2)">Considerar tratamiento farmacol\u00f3gico junto con la optimizaci\u00f3n de medidas no farmacol\u00f3gicas si no se consigue el objetivo de LDL-C.<b>Decisi\u00f3n compartida con el paciente.</b></span>'
++ '</div>';
+}
+out += '<div class="card"><div class="ctit">Objetivos Terap\u00e9uticos \u2014 ESC/EAS 2025</div>'
++ gH + thrHFinal + lpaNote + '</div>';
+// ④ Barra LDL vs objetivo — en BAJO se mueve DESPUÉS de estiloVidaH (ver abajo)
+var lbarH = '<div class="lbar"><div class="lhdr"><span style="font-weight:600">LDL-C actual vs objetivo</span>'
++ '<span style="font-family:\'Courier New\',monospace"><span style="color:' + (ldlv >tgt ? 'var(--er)' : 'var(--ok)') + '">' + ldlv + '</span>\u2192 objetivo<span style="color:var(--a)">&lt;' + tgt + ' mg/dL</span></span></div>'
++ '<div class="ltrack"><div class="lfill" style="width:' + lp2 + '%"></div>'
++ '<div class="ltl" style="left:' + tp2 + '%;background:var(--ok)"></div></div>'
++ '<div class="lscale"><span>0</span><span style="position:relative;left:' + Math.max(0, tp2 - 8) + '%;color:var(--ok)">\u25ce' + tgt + '</span><span>280 mg/dL</span></div>'
++ '<div class="lsum">' + projH + '</div></div>';
+if (esc.cat !== 'BAJO' && esc.cat !== 'MODERADO') out += lbarH;
+// ⑤ ALERTA PASO 2 — para BAJO/MODERADO se mueve después de estiloVidaH+lbarH (ver ⑦)
+if (esc.cat !== 'BAJO' && esc.cat !== 'MODERADO') out += alertP2;
+// ⑥ Nota estilos de vida — Tabla 4 ESC/EAS 2025
+// Bajo/Moderado: SOLO estilo de vida. Farmacoterapia solo si no se controla tras ≥3 meses.
+// Alto: modificación de estilo de vida + considerar fármaco si no se controla.
+var estiloVidaH = '';
+if (esc.cat === 'BAJO' || esc.cat === 'MODERADO') {
+estiloVidaH = '<div class="card" style="border-left:4px solid var(--ok);background:rgba(32,122,78,.04)">'
++ '<div class="ctit" style="color:var(--ok)">&#127807; PRIMERA MEDIDA: MODIFICACI&Oacute;N DEL ESTILO DE VIDA &mdash; Tabla 4, ESC/EAS 2025</div>'
++ '<div style="font-size:11px;color:var(--t);line-height:1.7;margin-bottom:10px">'
++ '<b>En riesgo ' + esc.cat + ', la gu&iacute;a ESC/EAS 2025 establece que la modificaci&oacute;n del estilo de vida es la intervenci&oacute;n de primera elecci&oacute;n.</b><br>'
++ 'El tratamiento farmacol&oacute;gico<b>no est&aacute; indicado como primera medida</b>y solo debe considerarse si el objetivo de LDL-C no se alcanza tras un per&iacute;odo adecuado de intervenci&oacute;n no farmacol&oacute;gica<b>(&ge;3 meses)</b>.'
++ '</div>'
++ '<table style="width:100%;font-size:11px;border-collapse:collapse;margin-bottom:10px">'
++ '<thead><tr style="border-bottom:1px solid var(--bor2)">'
++ '<th style="text-align:left;padding:4px 8px;color:var(--t2)">Medida</th>'
++ '<th style="text-align:left;padding:4px 8px;color:var(--t2)">Objetivo / Evidencia</th>'
++ '</tr></thead><tbody>'
++ '<tr style="border-bottom:1px solid var(--bor);background:rgba(255,255,255,.02)">'
++ '<td style="padding:4px 8px"><b>Dieta cardiosaludable</b></td>'
++ '<td style="padding:4px 8px;color:var(--t2)">Dieta mediterr&aacute;nea o DASH. Reducir grasas saturadas (&lt;7% cal. totales), eliminar grasas trans. &darr;LDL 5-15%.</td></tr>'
++ '<tr style="border-bottom:1px solid var(--bor)">'
++ '<td style="padding:4px 8px"><b>Actividad f&iacute;sica</b></td>'
++ '<td style="padding:4px 8px;color:var(--t2)">&ge;150 min/semana de actividad aerobica moderada o &ge;75 min intensa. &darr;LDL 3-6%, &uarr;HDL 3-5%.</td></tr>'
++ '<tr style="border-bottom:1px solid var(--bor);background:rgba(255,255,255,.02)">'
++ '<td style="padding:4px 8px"><b>Control del peso</b></td>'
++ '<td style="padding:4px 8px;color:var(--t2)">P&eacute;rdida &ge;5-10% del peso corporal si sobrepeso/obesidad. &darr;LDL 5-8%, &darr;TG 20-30%.</td></tr>'
++ '<tr style="border-bottom:1px solid var(--bor)">'
++ '<td style="padding:4px 8px"><b>Cese del tabaco</b></td>'
++ '<td style="padding:4px 8px;color:var(--t2)">&uarr;HDL 5-10%. Reduce el riesgo CV independientemente del LDL. Intervenci&oacute;n prioritaria si fumador.</td></tr>'
++ '<tr style="border-bottom:1px solid var(--bor);background:rgba(255,255,255,.02)">'
++ '<td style="padding:4px 8px"><b>Restricci&oacute;n de alcohol</b></td>'
++ '<td style="padding:4px 8px;color:var(--t2)">&lt;10 g/d&iacute;a o abstinencia. Especialmente si TG elevado.</td></tr>'
++ '<tr>'
++ '<td style="padding:4px 8px"><b>Fibra y fitoesterol</b></td>'
++ '<td style="padding:4px 8px;color:var(--t2)">Fibra soluble (avena, legumbres) &darr;LDL ~5%. Fitoesteroles/fitoestanoles 2 g/d&iacute;a &darr;LDL 8-10%.</td></tr>'
++ '</tbody></table>'
++ '<div style="font-size:11px;padding:8px 10px;background:rgba(32,122,78,.06);border-radius:6px;border:1px solid rgba(34,197,94,.2)">'
++ '&#9201;<b>Reevaluaci&oacute;n:</b>Control lip&iacute;dico a las<b>8-12 semanas</b>del inicio de los cambios. '
++ 'Si tras<b>&ge;3 meses</b>de intervenci&oacute;n intensa sobre el estilo de vida el LDL-C no alcanza el objetivo, '
++ '<b>entonces considerar inicio de tratamiento farmacol&oacute;gico</b>(Tabla 4, ESC/EAS 2025).'
++ '</div></div>';
+if (esc.cat === 'BAJO' || esc.cat === 'MODERADO') estiloVidaH += lbarH + alertP2;
+} else if (esc.cat === 'ALTO' || esc.cat === 'MUY ALTO' || esc.cat === 'EXTREMO') {
+// Botón desplegable de medidas de estilo de vida — reutilizable para ALTO / MUY ALTO / EXTREMO
+var evColor  = esc.cat === 'ALTO' ? 'var(--hi)' : 'var(--vh)';
+var evBg     = esc.cat === 'ALTO' ? 'rgba(212,102,10,.04)' : 'rgba(192,57,43,.04)';
+var evBgBtn  = esc.cat === 'ALTO' ? 'rgba(212,102,10,.08)' : 'rgba(239,68,68,.10)';
+var evBorder = esc.cat === 'ALTO' ? 'rgba(251,146,60,.25)' : 'rgba(239,68,68,.25)';
+var evBgNote = esc.cat === 'ALTO' ? 'rgba(212,102,10,.06)' : 'rgba(239,68,68,.08)';
+var evBorderNote = esc.cat === 'ALTO' ? 'rgba(251,146,60,.2)' : 'rgba(239,68,68,.2)';
+var _evId = 'evd-' + Math.random().toString(36).slice(2,7);
+var evDespl = '<div style="margin-top:10px">'
++ '<div onclick="(function(){var b=document.getElementById(\''+_evId+'\');var a=document.getElementById(\''+_evId+'-a\');if(b.style.display===\'none\'||b.style.display===\'\'){b.style.display=\'block\';a.textContent=\'▾\';}else{b.style.display=\'none\';a.textContent=\'▸\';}})()" '
++ 'style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:7px 12px;'
++ 'background:' + evBgBtn + ';border:1px solid ' + evBorder + ';border-radius:8px;'
++ 'font-size:11px;font-weight:700;color:' + evColor + ';user-select:none;-webkit-user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent">'
++ '<span style="font-size:13px">&#127807;</span>'
++ 'Medidas de modificaci&oacute;n del estilo de vida &mdash; Tabla 4, ESC/EAS 2025'
++ '<span style="margin-left:auto;font-size:10px;font-weight:400;color:var(--t2)">Pulsar para ver/ocultar</span>'
++ '<span id="'+_evId+'-a">▸</span>'
++ '</div>'
++ '<div id="'+_evId+'" style="display:none;margin-top:8px">'
++ '<table style="width:100%;font-size:11px;border-collapse:collapse;margin-bottom:8px">'
++ '<thead><tr style="border-bottom:1px solid var(--bor2)">'
++ '<th style="text-align:left;padding:4px 8px;color:var(--t2)">Medida</th>'
++ '<th style="text-align:left;padding:4px 8px;color:var(--t2)">Objetivo / Evidencia</th>'
++ '</tr></thead><tbody>'
++ '<tr style="border-bottom:1px solid var(--bor);background:rgba(255,255,255,.02)">'
++ '<td style="padding:4px 8px"><b>Dieta cardiosaludable</b></td>'
++ '<td style="padding:4px 8px;color:var(--t2)">Dieta mediterr&aacute;nea o DASH. Reducir grasas saturadas (&lt;7% cal. totales), eliminar grasas trans. &darr;LDL 5-15%.</td></tr>'
++ '<tr style="border-bottom:1px solid var(--bor)">'
++ '<td style="padding:4px 8px"><b>Actividad f&iacute;sica</b></td>'
++ '<td style="padding:4px 8px;color:var(--t2)">&ge;150 min/semana de actividad aer&oacute;bica moderada o &ge;75 min intensa. &darr;LDL 3-6%, &uarr;HDL 3-5%.</td></tr>'
++ '<tr style="border-bottom:1px solid var(--bor);background:rgba(255,255,255,.02)">'
++ '<td style="padding:4px 8px"><b>Control del peso</b></td>'
++ '<td style="padding:4px 8px;color:var(--t2)">P&eacute;rdida &ge;5-10% del peso corporal si sobrepeso/obesidad. &darr;LDL 5-8%, &darr;TG 20-30%.</td></tr>'
++ '<tr style="border-bottom:1px solid var(--bor)">'
++ '<td style="padding:4px 8px"><b>Cese del tabaco</b></td>'
++ '<td style="padding:4px 8px;color:var(--t2)">&uarr;HDL 5-10%. Reduce el riesgo CV independientemente del LDL. Intervenci&oacute;n prioritaria si fumador.</td></tr>'
++ '<tr style="border-bottom:1px solid var(--bor);background:rgba(255,255,255,.02)">'
++ '<td style="padding:4px 8px"><b>Restricci&oacute;n de alcohol</b></td>'
++ '<td style="padding:4px 8px;color:var(--t2)">&lt;10 g/d&iacute;a o abstinencia. Especialmente si TG elevado.</td></tr>'
++ '<tr>'
++ '<td style="padding:4px 8px"><b>Fibra y fitoesterol</b></td>'
++ '<td style="padding:4px 8px;color:var(--t2)">Fibra soluble (avena, legumbres) &darr;LDL ~5%. Fitoesteroles/fitoestanoles 2 g/d&iacute;a &darr;LDL 8-10%.</td></tr>'
++ '</tbody></table>'
++ '<div style="font-size:11px;padding:7px 10px;background:' + evBgNote + ';border-radius:6px;border:1px solid ' + evBorderNote + '">'
++ 'Las medidas de estilo de vida son<b>siempre complementarias</b>al tratamiento farmacol&oacute;gico y deben mantenerse indefinidamente.'
++ '</div></div></div>';
+if (esc.cat === 'ALTO') {
+estiloVidaH = '<div class="card" style="border-left:4px solid ' + evColor + ';background:' + evBg + '">'
++ '<div class="ctit" style="color:' + evColor + '">&#127807; MODIFICACI&Oacute;N DEL ESTILO DE VIDA + TRATAMIENTO FARMACOL&Oacute;GICO &mdash; Tabla 4 y Rec. Tabla 1, ESC/EAS 2025</div>'
++ '<div style="font-size:11px;color:var(--t);line-height:1.7;margin-bottom:10px">'
++ 'En riesgo<b>ALTO</b>, la Tabla 4 establece<b>modificaci&oacute;n del estilo de vida y considerar a&ntilde;adir tratamiento farmacol&oacute;gico si no se controla</b>. '
++ 'La Rec. Tabla 1 concreta los umbrales de intervenci&oacute;n farmacol&oacute;gica:'
++ '</div>'
++ '<table style="width:100%;font-size:11px;border-collapse:collapse;margin-bottom:4px">'
++ '<thead><tr style="border-bottom:1px solid var(--bor2)">'
++ '<th style="text-align:left;padding:4px 8px;color:var(--t2)">Clase</th>'
++ '<th style="text-align:left;padding:4px 8px;color:var(--t2)">LDL-C (sin tratar)</th>'
++ '<th style="text-align:left;padding:4px 8px;color:var(--t2)">Recomendaci&oacute;n</th>'
++ '</tr></thead><tbody>'
++ '<tr style="border-bottom:1px solid var(--bor);background:rgba(255,255,255,.02)">'
++ '<td style="padding:4px 8px"><b style="color:var(--er)">I-B</b></td>'
++ '<td style="padding:4px 8px"><b>&ge; 100 mg/dL</b>(2,6 mmol/L)</td>'
++ '<td style="padding:4px 8px;color:var(--t2)"><b>Se recomienda</b>junto con la optimizaci&oacute;n de medidas no farmacol&oacute;gicas.</td></tr>'
++ '<tr>'
++ '<td style="padding:4px 8px"><b style="color:var(--hi)">IIa-A</b></td>'
++ '<td style="padding:4px 8px"><b>&ge; 70 y &lt; 100 mg/dL</b>(1,8-2,6 mmol/L)</td>'
++ '<td style="padding:4px 8px;color:var(--t2)"><b>Se debe considerar</b>junto con la optimizaci&oacute;n de medidas no farmacol&oacute;gicas.</td></tr>'
++ '</tbody></table>'
++ evDespl + '</div>';
+} else {
+// MUY ALTO / EXTREMO
+var muAltoBorder = esc.cat === 'EXTREMO' ? 'var(--ext)' : evColor;
+var muAltoBg     = esc.cat === 'EXTREMO' ? 'rgba(107,63,160,.04)' : evBg;
+var thr1lbl = esc.cat === 'EXTREMO' ? '&ge; 40 mg/dL (1,0 mmol/L)' : '&ge; 70 mg/dL (1,8 mmol/L)';
+var thr2lbl = esc.cat === 'EXTREMO' ? '&mdash;' : '&ge; 55 y &lt; 70 mg/dL (1,4-1,8 mmol/L)';
+estiloVidaH = '<div class="card" style="border-left:4px solid ' + muAltoBorder + ';background:' + muAltoBg + '">'
++ '<div class="ctit" style="color:' + muAltoBorder + '">&#127807; MODIFICACI&Oacute;N DEL ESTILO DE VIDA + TRATAMIENTO FARMACOL&Oacute;GICO CONCOMITANTE &mdash; Tabla 4 y Rec. Tabla 1, ESC/EAS 2025</div>'
++ '<div style="font-size:11px;color:var(--t);line-height:1.7;margin-bottom:10px">'
++ 'En riesgo<b>' + esc.cat + '</b>, la Tabla 4 establece<b>modificaci&oacute;n del estilo de vida y tratamiento farmacol&oacute;gico concomitante</b>. '
++ 'La Rec. Tabla 1 concreta los umbrales de intervenci&oacute;n:'
++ '</div>'
++ '<table style="width:100%;font-size:11px;border-collapse:collapse;margin-bottom:4px">'
++ '<thead><tr style="border-bottom:1px solid var(--bor2)">'
++ '<th style="text-align:left;padding:4px 8px;color:var(--t2)">Clase</th>'
++ '<th style="text-align:left;padding:4px 8px;color:var(--t2)">LDL-C (sin tratar)</th>'
++ '<th style="text-align:left;padding:4px 8px;color:var(--t2)">Recomendaci&oacute;n</th>'
++ '</tr></thead><tbody>'
++ '<tr style="border-bottom:1px solid var(--bor);background:rgba(255,255,255,.02)">'
++ '<td style="padding:4px 8px"><b style="color:var(--er)">I-B</b></td>'
++ '<td style="padding:4px 8px"><b>' + thr1lbl + '</b></td>'
++ '<td style="padding:4px 8px;color:var(--t2)"><b>Se recomienda</b>junto con la optimizaci&oacute;n de medidas no farmacol&oacute;gicas.</td></tr>'
++ (esc.cat !== 'EXTREMO'
+? '<tr><td style="padding:4px 8px"><b style="color:var(--hi)">IIa-A</b></td>'
++ '<td style="padding:4px 8px"><b>' + thr2lbl + '</b></td>'
++ '<td style="padding:4px 8px;color:var(--t2)"><b>Se debe considerar</b>junto con la optimizaci&oacute;n de medidas no farmacol&oacute;gicas.</td></tr>'
+: '')
++ '</tbody></table>'
++ evDespl + '</div>';
+}
+}
+// ⑦ Tratamiento
+out += estiloVidaH;
+// Mostrar algoritmo farmacológico solo si hay indicación según Rec. Tabla 1
+// MUY ALTO / EXTREMO: siempre (LDL ≥55 Clase IIa, ≥70 Clase I)
+// ALTO: LDL ≥70 (Clase IIa) o ≥100 (Clase I) — no mostrar si LDL<70
+// MODERADO: LDL ≥100 (Clase IIa) — no mostrar si LDL <100
+// BAJO: LDL ≥116 (Clase IIa) — no mostrar si LDL <116
+var mostrarAlgoritmo = true;
+if (esc.cat === 'ALTO' && ldlv < 70) mostrarAlgoritmo = false;
+if (esc.cat === 'MODERADO' && ldlv < 100) mostrarAlgoritmo = false;
+if (esc.cat === 'BAJO' && ldlv < 116) mostrarAlgoritmo = false;
+if (mostrarAlgoritmo) {
+out += '<div class="dsec"><div class="ctit">Algoritmo de Tratamiento \u2014 ESC/EAS 2025</div>'
++ buildDrugs(tx, intol, esc, egfr, lpa, ldlv) + '</div>';
+} else {
+out += '<div class="card" style="border-left:4px solid var(--ok);background:rgba(32,122,78,.04);text-align:center;padding:20px">'
++ '<div style="font-size:22px;margin-bottom:8px">&#9989;</div>'
++ '<div style="font-size:13px;font-weight:700;color:var(--ok);margin-bottom:6px">LDL-C por debajo del umbral de intervenci\u00f3n farmacol\u00f3gica</div>'
++ '<div style="font-size:11px;color:var(--t2);line-height:1.7">'
++ 'Con LDL-C actual de<b>' + ldlv + ' mg/dL</b>en riesgo<b>' + esc.cat + '</b>, '
++ 'la Rec. Tabla 1 (ESC/EAS 2025)<b>no establece indicaci\u00f3n de tratamiento farmacol\u00f3gico</b>.<br>'
++ 'Mantener y reforzar las<b>medidas no farmacol\u00f3gicas</b>descritas arriba. Control lip\u00eddico en 6-12 meses.'
++ '</div></div>';
+}
+// ⑧ ERC (insuficiencia hepática ahora en desplegable del PASO 1)
+if (egfr && egfr< 60) {
+out += '<div class="dsec"><div class="ctit">Ajuste en Insuficiencia Renal</div>'
++ ercInfo(egfr) + '</div>';
+}
+// ⑧ TG
+out += buildTG(tg, esc);
+// ⑨ Seguimiento
+var ckText, altText;
+if (esc.cat === 'BAJO' || esc.cat === 'MODERADO' || esc.cat === 'ALTO' || esc.cat === 'MUY ALTO' || esc.cat === 'EXTREMO') {
+ckText = '<b>Determinaci\u00f3n basal solo en grupos de riesgo:</b>edad &gt;75 a\u00f1os, ERC, hipotiroidismo, bajo peso corporal, antecedentes de miopat\u00eda o toxicidad muscular previa, consumo de alcohol, polimedicaci\u00f3n con interacciones CYP.<br>Repetir<b>solo si s\u00edntomas</b>(mialgias, debilidad).<b class="warn">Suspender si CK &gt;4\u00d7LSN.</b>';
+altText = 'Determinaci\u00f3n<b>basal</b>y a las<b>12 semanas</b>del inicio.<br>No monitorizaci\u00f3n rutinaria adicional salvo s\u00edntomas o hepatopat\u00eda conocida.<br><b class="warn">Suspender si ALT &gt;3\u00d7LSN persistente.</b>';
+} // fin seguimiento diferenciado (aplica a todas las categorías)
+out += '<div class="card"><div class="ctit">Plan de Seguimiento</div>'
++ '<div class="fug">'
++ '<div class="fui"><div class="fuic">&#128197;</div><div class="fuit">Control lip&iacute;dico</div><div class="fuid">6-8 semanas tras inicio o ajuste. Verificar eficacia y tolerancia.</div></div>'
++ '<div class="fui"><div class="fuic">&#128170;</div><div class="fuit">CK / enzimas musculares</div><div class="fuid">' + ckText + '</div></div>'
++ '<div class="fui"><div class="fuic">&#127973;</div><div class="fuit">Transaminasas (ALT)</div><div class="fuid">' + altText + '</div></div>'
++ '<div class="fui"><div class="fuic">&#127919;</div><div class="fuit">Sin objetivo: escalar</div><div class="fuid">Estatina \u2192 +ezetimiba \u2192 +iPCSK9/inclisiran. Revisi\u00f3n c/3 meses.</div></div>'
++ '<div class="fui"><div class="fuic">&#129514;</div><div class="fuit">Lp(a)</div><div class="fuid">Al menos 1 determinaci\u00f3n en vida adulta (ESC 2025 Clase I-B).</div></div>'
++ '<div class="fui"><div class="fuic">&#9989;</div><div class="fuit">Objetivo alcanzado</div><div class="fuid">Control anual. No suspender sin supervisi\u00f3n. Reforzar adherencia.</div></div>'
++ '</div></div>';
+// ⑩ Disclaimer removido del script y movido al header estático
+R.innerHTML = out;
+}
+// Exponer en window para WKWebView (WhatsApp iOS) y cualquier contexto restringido
+// Actualizar window.calcular al finalizar la carga completa
+window.calcular = _calcularReal;
+
+// =======================================================
+//  PWA v8 — Service Worker + Manifest + InApp Detector
+//  ► A. Detector In-App Browser (WhatsApp/IG/FB/Telegram)
+//  ► B. Manifest universal Android(standalone)/iOS(minimal-ui)
+//  ► C. Apple meta tags corregidos (status-bar black)
+//  ► D. Privacy Manifest (Apple 2024) declarado inline
+//  ✦ ALGORITMOS CLÍNICOS: intactos, sin modificación
+// =======================================================
+
+// ════════════════════════════════════════════════════════
+//  D. PRIVACY MANIFEST — Apple App Privacy (mayo 2024)
+//  https://developer.apple.com/documentation/bundleresources/privacy_manifest_files
+//  Declarado como objeto JS (sin archivo externo)
+// ════════════════════════════════════════════════════════
+var CALCULIPID_PRIVACY_MANIFEST = {
+  // NSPrivacyTracking: false → no rastreamos usuarios entre apps/webs
+  NSPrivacyTracking: false,
+  // NSPrivacyTrackingDomains: [] → sin dominios de terceros para tracking
+  NSPrivacyTrackingDomains: [],
+  // APIs de sistema utilizadas y razón de uso
+  NSPrivacyAccessedAPITypes: [
+    {
+      // localStorage — para recordar preferencia de banner descartado (sessionStorage)
+      // y futura posibilidad de guardar últimos valores introducidos
+      NSPrivacyAccessedAPIType: 'NSPrivacyAccessedAPICategoryUserDefaults',
+      NSPrivacyAccessedAPITypeReasons: ['CA92.1'] // User-controlled settings storage
+    }
+  ],
+  // Datos recopilados: NINGUNO que identifique al usuario
+  // Los valores del formulario (edad, analítica) NUNCA se envían a servidor
+  // NUNCA se almacenan fuera del dispositivo
+  // NUNCA se comparten con terceros
+  NSPrivacyCollectedDataTypes: [],
+  // Nota clínica: la app no almacena datos de pacientes.
+  // Todos los cálculos ocurren en memoria del navegador (RAM).
+  // sessionStorage se usa únicamente para UX (banner descartado).
+  _note: 'Calculipid no recopila, almacena ni transmite datos de pacientes. Uso: herramienta de apoyo a la decisión clínica offline.'
+};
+// Exponer para auditoría / inspección de consola
+window.__calculipidPrivacyManifest = CALCULIPID_PRIVACY_MANIFEST;
+
+// ════════════════════════════════════════════════════════
+//  A. DETECTOR IN-APP BROWSER (WhatsApp / Instagram / FB)
+//  Detecta navegadores integrados que bloquean el prompt
+//  de instalación PWA. Muestra banner con instrucción.
+// ════════════════════════════════════════════════════════
+// =======================================================
+//  DETECTOR IN-APP BROWSER v9 — ESTRATEGIA ROBUSTA
+//  
+//  PROBLEMA REAL: WhatsApp Android ya no incluye "WhatsApp/"
+//  en su User Agent desde v2023+. Usa Chrome WebView sin firma.
+//  La detección por UA es INSUFICIENTE.
+//
+//  SOLUCIÓN: Lógica inversa — mostrar el banner en CUALQUIER
+//  Android móvil, y ocultarlo SOLO si confirmamos que estamos
+//  en Chrome/Samsung/Firefox REAL (con acceso a PWA install).
+//
+//  SEÑALES de navegador REAL (no IAB):
+//    1. beforeinstallprompt se dispara → Chrome real
+//    2. window.matchMedia('(display-mode: standalone)') → ya instalada
+//    3. UA incluye "SamsungBrowser" o "Firefox/" sin "wv)"
+//    4. sessionStorage disponible Y el usuario lo descartó antes
+//
+//  SEÑALES de IAB o WebView (mostrar banner):
+//    - "wv)" en UA (Android WebView flag oficial)
+//    - Ausencia de beforeinstallprompt tras 800ms
+//    - UA incluye WhatsApp, Instagram, FB, Telegram, etc.
+// =======================================================
+
+(function detectInAppBrowser() {
+  var ua  = navigator.userAgent || '';
+  var LOG = '[Calculipid IAB]'; // prefijo para debug en consola
+
+  // ── 0. Ya descartado por el usuario en esta sesión ────────────
+  try {
+    if (sessionStorage.getItem('iabBannerDismissed') === '1') {
+      console.log(LOG, 'Banner descartado en esta sesión — no mostrar');
+      return;
+    }
+  } catch(e) {}
+
+  // ── 1. ¿Estamos en móvil? (solo mostramos en móvil) ──────────
+  var isMobileUA = /Android|iPhone|iPad|iPod/i.test(ua);
+  if (!isMobileUA) {
+    console.log(LOG, 'Desktop detectado — banner no aplica');
+    return;
+  }
+
+  // ── 2. ¿Ya está instalada como PWA standalone? ────────────────
+  if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) {
+    console.log(LOG, 'App en modo standalone — ya instalada, no mostrar banner');
+    return;
+  }
+  if (window.navigator.standalone === true) { // iOS Safari installed
+    console.log(LOG, 'iOS standalone — ya instalada');
+    return;
+  }
+
+  // ── 3. Detectar firmas IAB CONOCIDAS en UA ────────────────────
+  //    WhatsApp Android moderno (2023+): SIN "WhatsApp/" en UA
+  //    pero SÍ tiene "wv)" (WebView flag de Android)
+  //    Además: Instagram, Facebook, Telegram, LinkedIn, etc.
+  var IAB_SIGNATURES = [
+    'WhatsApp/',          // WhatsApp iOS y Android antiguo
+    'Instagram',          // Instagram
+    'FBAN', 'FBAV', 'FB_IAB', 'FBIOS',  // Facebook
+    'TelegramWebview',    // Telegram
+    'TwitterAndroid',     // Twitter/X
+    'LinkedInApp',        // LinkedIn
+    'MiuiBrowser',        // Xiaomi built-in
+    'GSA/',               // Google Search App
+    'YaBrowser/',         // Yandex
+    'DuckDuckGo/'         // DuckDuckGo (sin soporte PWA)
+  ];
+
+  var hasIABSignature = IAB_SIGNATURES.some(function(sig) {
+    return ua.indexOf(sig) !== -1;
+  });
+
+  // "wv)" = Android WebView flag — CLAVE para WhatsApp moderno
+  var hasWebViewFlag = /\bwv\)/.test(ua);
+
+  // ── 4. Confirmar si es navegador REAL (no IAB) ─────────────────
+  //    Chrome real en Android: tiene Chrome/, NO tiene wv), NO tiene IAB signatures
+  var isRealChrome   = /Chrome\//.test(ua) && !hasWebViewFlag && !hasIABSignature;
+  var isSamsung      = /SamsungBrowser\//.test(ua);
+  var isRealFirefox  = /Firefox\//.test(ua) && !hasIABSignature;
+  var isRealOpera    = /OPR\//.test(ua) && !hasIABSignature;
+  var isRealEdge     = /EdgA\//.test(ua) && !hasIABSignature; // Edge Android
+
+  var isConfirmedRealBrowser = isRealChrome || isSamsung || isRealFirefox || isRealOpera || isRealEdge;
+
+  console.log(LOG, 'UA:', ua.substring(0, 120));
+  console.log(LOG, {
+    hasIABSignature: hasIABSignature,
+    hasWebViewFlag: hasWebViewFlag,
+    isConfirmedRealBrowser: isConfirmedRealBrowser
+  });
+
+  // ── 5. Decisión de mostrar banner ─────────────────────────────
+  //    Si tenemos firma IAB o WebView flag → mostrar inmediatamente
+  //    Si es navegador real confirmado → esperar beforeinstallprompt
+  //    Si es ambiguo (sin firma conocida, sin wv) → mostrar tras timeout
+
+  var bannerShown = false;
+
+  function showBanner(reason) {
+    if (bannerShown) return;
+    bannerShown = true;
+    console.log(LOG, 'Mostrando banner — razón:', reason);
+
+    var isIOS     = /iPhone|iPad|iPod/i.test(ua);
+    var isWA      = ua.indexOf('WhatsApp/') !== -1;
+    var isFB      = /FBAN|FBAV|FB_IAB|FBIOS/.test(ua);
+    var isIG      = ua.indexOf('Instagram') !== -1;
+    var isTG      = ua.indexOf('TelegramWebview') !== -1;
+
+    // Texto del menú según plataforma
+    var menuIcon  = isIOS ? '↗' : '⋮';
+    var browser   = isIOS ? 'Safari' : 'Chrome';
+
+    var appName   = isWA ? 'WhatsApp'
+                  : isFB ? 'Facebook'
+                  : isIG ? 'Instagram'
+                  : isTG ? 'Telegram'
+                  : hasWebViewFlag ? 'esta aplicación'
+                  : 'este navegador';
+
+    // Instrucción específica por plataforma
+    var instruccion = isIOS
+      ? 'Pulsa el icono <strong>Compartir ↗</strong> (abajo) y selecciona <strong>"Añadir a inicio"</strong> o <strong>"Abrir en Safari"</strong>.'
+      : 'Pulsa el menú <strong>⋮</strong> (arriba a la derecha) y selecciona <strong>"Abrir en Chrome"</strong> o <strong>"Abrir en el navegador"</strong>.';
+
+    var msgEl = document.getElementById('inapp-banner-msg');
+    if (msgEl) {
+      msgEl.innerHTML =
+        'Estás usando el navegador interno de <strong>' + appName + '</strong>. ' +
+        instruccion + ' ' +
+        'Solo así podrás instalar Calculipid y usarla <strong>sin conexión</strong>.';
+    }
+
+    var titleEl = document.querySelector('#inapp-banner .iab-title');
+    if (titleEl) {
+      titleEl.textContent = isWA ? '📲 Abre en Chrome para instalar'
+                          : isIG ? '📲 Abre en Safari/Chrome para instalar'
+                          : '📲 Abre en tu navegador real';
+    }
+
+    var banner = document.getElementById('inapp-banner');
+    if (banner) {
+      banner.classList.add('visible');
+      // Asegurar que el contenido no quede tapado
+      document.body.style.scrollPaddingTop = '80px';
+    }
+  }
+
+  // Caso A: firma IAB clara o WebView flag → mostrar YA
+  if (hasIABSignature || hasWebViewFlag) {
+    showBanner('firma IAB o wv) flag detectado');
+    return;
+  }
+
+  // Caso B: navegador real confirmado → no mostrar (puede instalar)
+  if (isConfirmedRealBrowser) {
+    // Escuchar beforeinstallprompt para confirmar que puede instalar
+    console.log(LOG, 'Navegador real — no mostrar banner, esperando beforeinstallprompt');
+    return;
+  }
+
+  // Caso C: ambiguo (Android, sin firma clara, sin wv) → esperar 1.5s
+  // Si en 1.5s no se dispara beforeinstallprompt, asumimos IAB
+  var pwaInstallable = false;
+  window.addEventListener('beforeinstallprompt', function() {
+    pwaInstallable = true;
+    console.log(LOG, 'beforeinstallprompt disparado — Chrome real, no mostrar banner');
+  });
+
+  setTimeout(function() {
+    if (!pwaInstallable && !bannerShown) {
+      showBanner('timeout — beforeinstallprompt no recibido en 1500ms (probable IAB)');
+    }
+  }, 1500);
+
+})();
+
+// Función global para descartar el banner
+window.dismissIABBanner = function() {
+  var banner = document.getElementById('inapp-banner');
+  if (banner) {
+    banner.style.transition = 'opacity .3s';
+    banner.style.opacity = '0';
+    setTimeout(function() {
+      banner.classList.remove('visible');
+      banner.style.cssText = '';
+    }, 320);
+  }
+  try { sessionStorage.setItem('iabBannerDismissed', '1'); } catch(e) {}
+};
+
+// DEBUG: exponer UA y estado para inspección desde consola del navegador
+window.__calculipidDebugUA = function() {
+  var ua = navigator.userAgent;
+  var info = {
+    userAgent: ua,
+    hasWvFlag: /\bwv\)/.test(ua),
+    hasWhatsApp: ua.indexOf('WhatsApp/') !== -1,
+    hasChrome: /Chrome\//.test(ua),
+    isSamsung: /SamsungBrowser\//.test(ua),
+    isStandalone: window.matchMedia('(display-mode: standalone)').matches,
+    bannerVisible: document.getElementById('inapp-banner') &&
+                   document.getElementById('inapp-banner').classList.contains('visible')
+  };
+  console.table(info);
+  return info;
+};
+
+// ════════════════════════════════════════════════════════
+//  B+C. MANIFEST UNIVERSAL + SERVICE WORKER
+// ════════════════════════════════════════════════════════
+(function initPWA() {
+  // ── Detección de plataforma ─────────────────────────────
+  var ua    = navigator.userAgent || '';
+  var isIOS = /iphone|ipad|ipod/i.test(ua);
+
+  // ── B. Manifest universal —————————————————————————————
+  // Android: display "standalone" → experiencia nativa completa
+  // iOS:     display "minimal-ui" → permite procesos en segundo
+  //          plano y evita restricciones de Safari en standalone
+  // Iconos: SVG escalable equivalente a PNG 192×192 y 512×512
+  // start_url "/" → evita errores de carga offline
+  var svgIcon = function(size) {
+    return 'data:image/svg+xml,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + size + ' ' + size + '">' +
+      '<rect width="' + size + '" height="' + size + '" rx="' + Math.round(size * 0.167) + '" fill="#1a6f8e"/>' +
+      '<text x="50%" y="54%" font-size="' + Math.round(size * 0.55) + '" ' +
+      'text-anchor="middle" dominant-baseline="middle" fill="white">❤</text>' +
+      '<text x="50%" y="82%" font-size="' + Math.round(size * 0.1) + '" ' +
+      'text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,.7)" font-family="system-ui">ESC/EAS 2025</text>' +
+      '</svg>'
+    );
+  };
+
+  var manifest = {
+    name:             'Calculipid — ESC/EAS 2025',
+    short_name:       'Calculipid',
+    description:      'Calculadora RCV para Atención Primaria. SCORE2, SCORE2-OP, SCORE2-Diabetes. ESC/EAS 2025. Funciona sin conexión.',
+    start_url:        '/',          // raíz → evita errores offline
+    scope:            '/',
+    display:          isIOS ? 'minimal-ui' : 'standalone',
+    background_color: '#f4f7f9',
+    theme_color:      '#1a6f8e',
+    lang:             'es',
+    orientation:      'any',
+    categories:       ['medical', 'health'],
+    icons: [
+      // 192×192 (Android home screen, Chrome splash)
+      { src: svgIcon(192), sizes: '192x192', type: 'image/svg+xml', purpose: 'any' },
+      { src: svgIcon(192), sizes: '192x192', type: 'image/svg+xml', purpose: 'maskable' },
+      // 512×512 (Android splash screen, Play Store PWA)
+      { src: svgIcon(512), sizes: '512x512', type: 'image/svg+xml', purpose: 'any' },
+      { src: svgIcon(512), sizes: '512x512', type: 'image/svg+xml', purpose: 'maskable' }
+    ]
+  };
+
+  try {
+    var blob = new Blob([JSON.stringify(manifest, null, 2)], { type: 'application/manifest+json' });
+    var url  = URL.createObjectURL(blob);
+    var link = document.createElement('link');
+    link.rel = 'manifest'; link.href = url;
+    document.head.appendChild(link);
+  } catch(e) { /* contexto sin Blob — la app funciona igual */ }
+
+  // ── C. Apple Startup Image adicional (varios tamaños) ──
+  // (La 320×460 ya está en el <head> estático)
+  var startups = [
+    { w:375,  h:667,  media:'(device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2)' },   // iPhone 6/7/8
+    { w:390,  h:844,  media:'(device-width:390px) and (device-height:844px) and (-webkit-device-pixel-ratio:3)' },   // iPhone 14
+    { w:430,  h:932,  media:'(device-width:430px) and (device-height:932px) and (-webkit-device-pixel-ratio:3)' },   // iPhone 14 Plus
+    { w:768,  h:1024, media:'(device-width:768px) and (device-height:1024px) and (-webkit-device-pixel-ratio:2)' }   // iPad
+  ];
+  startups.forEach(function(d) {
+    var lnk = document.createElement('link');
+    lnk.rel = 'apple-touch-startup-image';
+    lnk.setAttribute('media', d.media);
+    lnk.href = 'data:image/svg+xml,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="' + d.w + '" height="' + d.h + '">' +
+      '<rect width="' + d.w + '" height="' + d.h + '" fill="#f4f7f9"/>' +
+      '<rect x="' + (d.w/2-50) + '" y="' + (d.h/2-80) + '" width="100" height="100" rx="18" fill="#1a6f8e"/>' +
+      '<text x="' + (d.w/2) + '" y="' + (d.h/2-20) + '" font-size="56" text-anchor="middle" dominant-baseline="middle" fill="white">❤</text>' +
+      '<text x="' + (d.w/2) + '" y="' + (d.h/2+60) + '" font-size="22" font-weight="700" text-anchor="middle" fill="#1a6f8e" font-family="system-ui">Calculipid</text>' +
+      '<text x="' + (d.w/2) + '" y="' + (d.h/2+88) + '" font-size="13" text-anchor="middle" fill="#8aa0b2" font-family="system-ui">ESC/EAS 2025</text>' +
+      '</svg>'
+    );
+    document.head.appendChild(lnk);
+  });
+
+  // ── Service Worker — caché offline completo ─────────────
+  if ('serviceWorker' in navigator) {
+    var swCode = [
+      "'use strict';",
+      "var CACHE='calculipid-v8';",
+      "self.addEventListener('install',function(e){",
+      "  self.skipWaiting();",
+      "  e.waitUntil(caches.open(CACHE).then(function(c){",
+      "    return c.addAll(['/']).catch(function(){});",
+      "  }));",
+      "});",
+      "self.addEventListener('activate',function(e){",
+      "  e.waitUntil(caches.keys().then(function(ks){",
+      "    return Promise.all(ks.filter(function(k){return k!==CACHE;}).map(function(k){return caches.delete(k);}));",
+      "  }).then(function(){return self.clients.claim();}));",
+      "});",
+      "self.addEventListener('fetch',function(e){",
+      "  var url=new URL(e.request.url);",
+      "  if(url.protocol==='chrome-extension:'||e.request.method!=='GET'){return;}",
+      "  e.respondWith(",
+      "    caches.match(e.request).then(function(cached){",
+      "      var network=fetch(e.request).then(function(res){",
+      "        if(res&&res.status===200&&url.origin===self.location.origin){",
+      "          caches.open(CACHE).then(function(c){c.put(e.request,res.clone());});",
+      "        }",
+      "        return res;",
+      "      }).catch(function(){return cached;});",
+      "      return cached||network;",
+      "    })",
+      "  );",
+      "});"
+    ].join('\n');
+
+    try {
+      var swBlob = new Blob([swCode], { type: 'application/javascript' });
+      var swUrl  = URL.createObjectURL(swBlob);
+      navigator.serviceWorker.register(swUrl, { scope: './' })
+        .then(function(reg){ reg.update(); })
+        .catch(function(){ /* HTTP o contexto restringido — app funciona igual */ });
+    } catch(e) {}
+  }
+
+  // ── Banner instalación iOS (solo Safari real, no IAB) ───
+  var isIAB = /WhatsApp\/|Instagram|FBAN|FBAV|FB_IAB|FBIOS|TelegramWebview|TwitterAndroid/i.test(ua);
+  var isStandalone = window.navigator.standalone;
+
+  function maybeShowInstallHint() {
+    if (!isIOS || isIAB || isStandalone) return;
+    try { if (localStorage.getItem('cwInstallDismissed')) return; } catch(e) {}
+    var banner = document.createElement('div');
+    banner.id = 'pwa-install-hint';
+    banner.setAttribute('role', 'status');
+    banner.setAttribute('aria-live', 'polite');
+    banner.style.cssText = [
+      'position:fixed;bottom:16px;left:50%;transform:translateX(-50%)',
+      'background:#1a6f8e;color:#fff',
+      'border-radius:12px;padding:10px 16px',
+      'font-size:11px;line-height:1.5',
+      'max-width:290px;width:calc(100% - 32px)',
+      'box-shadow:0 4px 20px rgba(0,0,0,.25)',
+      'z-index:9997;text-align:center',
+      'animation:slideUp .3s ease'
+    ].join(';');
+    banner.innerHTML =
+      '<b>📲 Instalar Calculipid</b><br>' +
+      'Toca <b>Compartir ↑</b> y luego<br>' +
+      '"<b>Añadir a pantalla de inicio</b>"<br>' +
+      '<span style="opacity:.7;font-size:10px">Funciona sin conexión · Sin datos de paciente almacenados</span><br>' +
+      '<button onclick="(function(){' +
+        'var b=document.getElementById(\'pwa-install-hint\');' +
+        'if(b)b.remove();' +
+        'try{localStorage.setItem(\'cwInstallDismissed\',\'1\');}catch(e){}' +
+      '})()" style="margin-top:6px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);border-radius:6px;color:#fff;font-size:10px;padding:3px 10px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation">✕ Cerrar</button>';
+    document.body.appendChild(banner);
+    setTimeout(function() {
+      var b = document.getElementById('pwa-install-hint');
+      if (b) { b.style.opacity='0'; b.style.transition='opacity .4s'; setTimeout(function(){if(b.parentNode)b.remove();},400); }
+    }, 12000);
+  }
+
+  // CSS animación del banner de instalación
+  var style = document.createElement('style');
+  style.textContent = '@keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}';
+  document.head.appendChild(style);
+
+  // Mostrar banner instalación tras primer cálculo (sin interferir con IAB banner)
+  var _origCalc = window.calcular;
+  window.calcular = function() {
+    _origCalc.apply(this, arguments);
+    setTimeout(maybeShowInstallHint, 3000);
+    window.calcular = _origCalc;
+  };
+})();
+
+// ── AVISO COLAPSABLE EN MÓVIL ──────────────────────────────
+// En pantallas ≤900px: el aviso se oculta automáticamente al primer
+// toque/foco en cualquier campo del formulario. No afecta al algoritmo.
+(function() {
+  var discDismissed = false;
+
+  function isMobile() {
+    return window.innerWidth <= 900;
+  }
+
+  function collapseDisc() {
+    if (discDismissed) return;
+    discDismissed = true;
+    var disc = document.getElementById('header-disc');
+    var btn  = document.getElementById('disc-toggle-btn');
+    if (disc) disc.classList.add('disc-collapsed');
+    if (btn)  btn.textContent = '⚠ Aviso';
+  }
+
+  window.toggleDisclaimer = function() {
+    var disc = document.getElementById('header-disc');
+    var btn  = document.getElementById('disc-toggle-btn');
+    if (!disc) return;
+    if (disc.classList.contains('disc-collapsed')) {
+      disc.classList.remove('disc-collapsed');
+      discDismissed = false;
+      if (btn) btn.textContent = '✕ Ocultar';
+    } else {
+      disc.classList.add('disc-collapsed');
+      discDismissed = true;
+      if (btn) btn.textContent = '⚠ Aviso';
+    }
+  };
+
+  function attachInputListeners() {
+    // Todos los inputs y selects del formulario
+    var fields = document.querySelectorAll('input, select');
+    fields.forEach(function(el) {
+      el.addEventListener('focus',  function() { if (isMobile()) collapseDisc(); }, { once: false, passive: true });
+      el.addEventListener('touchstart', function() { if (isMobile()) collapseDisc(); }, { once: false, passive: true });
+      el.addEventListener('change', function() { if (isMobile()) collapseDisc(); }, { once: false, passive: true });
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', attachInputListeners);
+  } else {
+    attachInputListeners();
+  }
+})();
+
+</script>
+<div class="biblio">
+  <details class="biblio-card">
+    <summary class="biblio-title" style="cursor:pointer;list-style:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;-webkit-user-select:none;">
+      <span style="display:flex;align-items:center;gap:6px;width:100%">
+        <span style="display:flex;align-items:center;gap:6px;flex:1">&#128218; Base Cient&iacute;fica</span>
+        <span class="biblio-toggle-icon" style="font-size:11px;color:var(--a3);background:var(--a);border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;font-style:normal;transition:transform .2s">&#9660;</span>
+      </span>
+    </summary>
+    <div class="biblio-refs" style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;">
+      <div class="bref"><span class="bref-num">1</span><div class="bref-text"><b>SCORE2 Working Group.</b> EHJ 2021;42:2439&ndash;2454.<span class="doi">doi:10.1093/eurheartj/ehab309</span></div></div>
+      <div class="bref"><span class="bref-num">2</span><div class="bref-text"><b>SCORE2-OP Working Group.</b> EHJ 2021;42:2455&ndash;2467.<span class="doi">doi:10.1093/eurheartj/ehab312</span></div></div>
+      <div class="bref"><span class="bref-num">3</span><div class="bref-text"><b>SCORE2-Diabetes Working Group.</b> EHJ 2023;44:2544&ndash;2556.<span class="doi">doi:10.1093/eurheartj/ehad260</span></div></div>
+      <div class="bref"><span class="bref-num">4</span><div class="bref-text"><b>ESC Guidelines CVD Prevention 2021.</b> EHJ 2021;42:3227&ndash;3337.<span class="doi">doi:10.1093/eurheartj/ehab484</span></div></div>
+      <div class="bref"><span class="bref-num">5</span><div class="bref-text"><b>ESC/EAS Dyslipidaemias 2019.</b> EHJ 2020;41:111&ndash;188.<span class="doi">doi:10.1093/eurheartj/ehz455</span></div></div>
+      <div class="bref"><span class="bref-num">6</span><div class="bref-text"><b>ESC/EAS Dyslipidaemias Focused Update 2025.</b> EHJ 2025;46:4359&ndash;4378.<span class="doi">doi:10.1093/eurheartj/ehaf190</span></div></div>
+      <div class="bref"><span class="bref-num">7</span><div class="bref-text"><b>ESC Guidelines CVD in Diabetes 2023.</b> EHJ 2023;44:4043&ndash;4140.<span class="doi">doi:10.1093/eurheartj/ehad192</span></div></div>
+      <div class="bref"><span class="bref-num">8</span><div class="bref-text"><b>ESC Guidelines Arterial Hypertension 2024.</b> EHJ 2024;45:3912&ndash;4018.<span class="doi">doi:10.1093/eurheartj/ehae178</span></div></div>
+      <div class="bref"><span class="bref-num">9</span><div class="bref-text"><b>Consenso SEC-SEA 2024</b> nuevas terapias hipolipemiantes. Rev Esp Cardiol 2024.</div></div>
+      <div class="bref"><span class="bref-num">10</span><div class="bref-text"><b>Est&aacute;ndares SEA 2026</b> control global del riesgo vascular. Clin Investig Arterioscler 2026.</div></div>
+      <div class="bref" style="grid-column:1/-1"><span class="bref-num">11</span><div class="bref-text"><b>Cardioteca &mdash; Calculadora SCORE2 / SCORE2-OP online.</b>
+        <a href="https://www.cardioteca.com/riesgo-cardiovascular/calculadoras-riesgo/score2.html"
+           target="_blank" rel="noopener" class="doi" style="color:var(--a)">cardioteca.com/score2</a>
+        &mdash; Algoritmo de referencia para el c&aacute;lculo del riesgo cardiovascular implementado en esta herramienta.</div></div>
+    </div>
+  </details>
+</div>
+
+
+</body>
+</html>
